@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: Jstl.ink API
+  description: |-
+    Jstl.ink description
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+servers:
+  - url: localhost:8080
+  - url: https://jstl.ink
+tags:
+  - name: pages
+    description: Everything about jstlink pages
+  - name: admin
+    description: Everything about the admin site to edit pages
+paths:
+  /{pageId}:
+    get:
+      tags:
+        - pages
+      summary: Get page by pageId
+      description: Returns a single page
+      operationId: getPageById
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Page not found
+  /{pageId}/edit:
+    get:
+      tags:
+        - admin
+      summary: Get the admin site
+      description: ''
+      operationId: getAdminPageById
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+      security:
+        - bearerAuth: []
+  /store/inventory:
+    get:
+      tags:
+        - store
+      summary: Returns pet inventories by status
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+      security:
+        - api_key: []
+
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+
+components:
+  schemas:
+    Id:
+      description: ID of page
+      type: integer
+      format: int64
+
+    Page:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+
+  #################
+
+  parameters:
+    PageId:
+      name: pageId
+      in: path
+      description: ID of order that needs to be fetched
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+
+  #################
+
+
+  #################
+
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+
+  #################
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

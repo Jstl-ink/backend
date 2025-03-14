@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  description: Jstl.ink description
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Jstl.ink API
+  version: 0.1.0
+servers:
+- url: localhost:8080
+- url: https://jstl.ink
+tags:
+- description: Everything about jstlink pages
+  name: pages
+- description: Everything about the admin site to edit pages
+  name: admin
+paths:
+  /{pageId}:
+    get:
+      description: Returns a single page
+      operationId: getPageById
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+          description: successful operation
+        "404":
+          description: Page not found
+      summary: Get page by pageId
+      tags:
+      - pages
+      x-eov-operation-handler: controllers/PagesController
+  /{pageId}/edit:
+    get:
+      description: ""
+      operationId: getAdminPageById
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+      responses:
+        "401":
+          description: Access token is missing or invalid
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: successful operation
+      security:
+      - bearerAuth: []
+      summary: Get the admin site
+      tags:
+      - admin
+      x-eov-operation-handler: controllers/AdminController
+  /store/inventory:
+    get:
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  format: int32
+                  type: integer
+                type: object
+          description: successful operation
+      security:
+      - api_key: []
+      summary: Returns pet inventories by status
+      tags:
+      - store
+      x-eov-operation-handler: controllers/StoreController
+  /user/logout:
+    get:
+      description: ""
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+      summary: Logs out current logged in user session
+      tags:
+      - user
+      x-eov-operation-handler: controllers/UserController
+components:
+  parameters:
+    PageId:
+      description: ID of order that needs to be fetched
+      explode: false
+      in: path
+      name: pageId
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+      style: simple
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+  schemas:
+    Id:
+      description: ID of page
+      format: int64
+      type: integer
+    Page:
+      properties:
+        id:
+          description: ID of page
+          format: int64
+          type: integer
+      type: object
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
