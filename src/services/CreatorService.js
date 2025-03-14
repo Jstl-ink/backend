@@ -2,14 +2,14 @@
 const Service = require('./Service');
 
 /**
-* Get the admin site
+* Get the creator site
 * 
 *
 * pageId Long ID of order that needs to be fetched
 * body File  (optional)
 * returns String
 * */
-const getAdminPageById = ({ pageId, body }) => new Promise(
+const getCreatorPageById = ({ pageId, body }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
@@ -26,5 +26,5 @@ const getAdminPageById = ({ pageId, body }) => new Promise(
 );
 
 module.exports = {
-  getAdminPageById,
+  getCreatorPageById,
 };

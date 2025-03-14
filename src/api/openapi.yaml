@@ -12,8 +12,8 @@ servers:
 tags:
 - description: Everything about jstlink pages
   name: pages
-- description: Everything about the admin site to edit pages
-  name: admin
+- description: Everything about the creator site to edit pages
+  name: creator
 paths:
   /{pageId}:
     get:
@@ -47,7 +47,7 @@ paths:
   /{pageId}/edit:
     get:
       description: ""
-      operationId: getAdminPageById
+      operationId: getCreatorPageById
       parameters:
       - description: ID of order that needs to be fetched
         explode: false
@@ -74,10 +74,10 @@ paths:
           description: successful operation
       security:
       - bearerAuth: []
-      summary: Get the admin site
+      summary: Get the creator site
       tags:
-      - admin
-      x-eov-operation-handler: controllers/AdminController
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
   /store/inventory:
     get:
       description: Returns a map of status codes to quantities

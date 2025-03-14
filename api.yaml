@@ -13,8 +13,8 @@ servers:
 tags:
   - name: pages
     description: Everything about jstlink pages
-  - name: admin
-    description: Everything about the admin site to edit pages
+  - name: creator
+    description: Everything about the creator site to edit pages
 paths:
   /{pageId}:
     get:
@@ -40,10 +40,10 @@ paths:
   /{pageId}/edit:
     get:
       tags:
-        - admin
-      summary: Get the admin site
+        - creator
+      summary: Get the creator site
       description: ''
-      operationId: getAdminPageById
+      operationId: getCreatorPageById
       parameters:
         - $ref: '#/components/parameters/PageId'
       requestBody:

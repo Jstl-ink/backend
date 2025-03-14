@@ -1,10 +1,9 @@
 .eslintrc.json
-.openapi-generator-ignore
 README.md
 api/openapi.yaml
 config.js
-controllers/AdminController.js
 controllers/Controller.js
+controllers/CreatorController.js
 controllers/PagesController.js
 controllers/StoreController.js
 controllers/UserController.js
@@ -13,8 +12,6 @@ expressServer.js
 index.js
 logger.js
 package.json
-services/AdminService.js
-services/PagesService.js
 services/Service.js
 services/StoreService.js
 services/UserService.js

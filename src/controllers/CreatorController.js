@@ -1,5 +1,5 @@
 /**
- * The AdminController file is a very simple one, which does not need to be changed manually,
+ * The CreatorController file is a very simple one, which does not need to be changed manually,
  * unless there's a case where business logic routes the request to an entity which is not
  * the service.
  * The heavy lifting of the Controller item is done in Request.js - that is where request
@@ -7,12 +7,12 @@
  */
 
 const Controller = require('./Controller');
-const service = require('../services/AdminService');
-const getAdminPageById = async (request, response) => {
-  await Controller.handleRequest(request, response, service.getAdminPageById);
+const service = require('../services/CreatorService');
+const getCreatorPageById = async (request, response) => {
+  await Controller.handleRequest(request, response, service.getCreatorPageById);
 };
 
 
 module.exports = {
-  getAdminPageById,
+  getCreatorPageById,
 };
