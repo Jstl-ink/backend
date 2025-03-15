@@ -1,6 +1,7 @@
 openapi: 3.0.3
 info:
-  description: Jstl.ink description
+  description: "Jstl.ink gives users the ability to easily create simple pages containing\
+    \ for \nthem relevant links and their social media profiles"
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +12,8 @@ servers:
 - url: https://jstl.ink
 tags:
 - description: Everything about jstlink pages
-  name: pages
-- description: Everything about the creator site to edit pages
+  name: page
+- description: Everything about the creator page to create & edit pages
   name: creator
 paths:
   /{pageId}:
@@ -33,21 +34,92 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Page'
             application/xml:
               schema:
-                type: string
+                $ref: '#/components/schemas/Page'
           description: successful operation
         "404":
           description: Page not found
       summary: Get page by pageId
       tags:
-      - pages
-      x-eov-operation-handler: controllers/PagesController
-  /{pageId}/edit:
+      - page
+      x-eov-operation-handler: controllers/PageController
+  /creator:
+    post:
+      operationId: createPage
+      responses:
+        "401":
+          description: Access token is missing or invalid
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Page'
+          description: successful operation
+      security:
+      - bearerAuth: []
+      summary: Create new user page
+      tags:
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
+  /creator/{pageId}:
+    delete:
+      operationId: deletePageByPageId
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      responses:
+        "401":
+          description: Access token is missing or invalid
+        "200":
+          description: successful operation
+      security:
+      - bearerAuth: []
+      summary: Delete a user page
+      tags:
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
     get:
-      description: ""
       operationId: getCreatorPageById
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      responses:
+        "401":
+          description: Access token is missing or invalid
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Page'
+          description: successful operation
+      security:
+      - bearerAuth: []
+      summary: Get the creator page
+      tags:
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
+    patch:
+      operationId: updateLinkByPageId
       parameters:
       - description: ID of order that needs to be fetched
         explode: false
@@ -59,10 +131,9 @@ paths:
         style: simple
       requestBody:
         content:
-          application/octet-stream:
+          application/json:
             schema:
-              format: binary
-              type: string
+              $ref: '#/components/schemas/Link'
       responses:
         "401":
           description: Access token is missing or invalid
@@ -70,46 +141,96 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Link'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Link'
           description: successful operation
       security:
       - bearerAuth: []
-      summary: Get the creator site
+      summary: Update a link on user page
       tags:
       - creator
       x-eov-operation-handler: controllers/CreatorController
-  /store/inventory:
-    get:
-      description: Returns a map of status codes to quantities
-      operationId: getInventory
+    post:
+      operationId: createLinkByPageId
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
       responses:
+        "401":
+          description: Access token is missing or invalid
         "200":
           content:
             application/json:
               schema:
-                additionalProperties:
-                  format: int32
-                  type: integer
-                type: object
+                $ref: '#/components/schemas/Link'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Link'
           description: successful operation
       security:
-      - api_key: []
-      summary: Returns pet inventories by status
+      - bearerAuth: []
+      summary: Create new link on the user page
       tags:
-      - store
-      x-eov-operation-handler: controllers/StoreController
-  /user/logout:
-    get:
-      description: ""
-      operationId: logoutUser
-      parameters: []
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
+    put:
+      operationId: updateSocialLinkByPageId
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLink'
       responses:
-        default:
+        "401":
+          description: Access token is missing or invalid
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialLink'
           description: successful operation
-      summary: Logs out current logged in user session
+      security:
+      - bearerAuth: []
+      summary: Update a social link on user page
       tags:
-      - user
-      x-eov-operation-handler: controllers/UserController
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
+  /creator/logout:
+    get:
+      operationId: logoutUser
+      parameters:
+      - description: ID of order that needs to be fetched
+        explode: false
+        in: path
+        name: pageId
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+        style: simple
+      responses:
+        "200":
+          description: successful operation
+      summary: Logout user from creator page
+      tags:
+      - creator
+      x-eov-operation-handler: controllers/CreatorController
 components:
   parameters:
     PageId:
@@ -124,18 +245,90 @@ components:
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
+    SuccessfulResponse:
+      description: successful operation
+    LinkResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Link'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Link'
+      description: successful operation
+    PageResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Page'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Page'
+      description: successful operation
   schemas:
     Id:
       description: ID of page
       format: int64
       type: integer
     Page:
+      example:
+        img: img
+        socialLinks:
+        - null
+        - null
+        name: name
+        bio: bio
+        links:
+        - name: name
+          link: link
+        - name: name
+          link: link
+        id: 0
       properties:
         id:
           description: ID of page
           format: int64
           type: integer
+        name:
+          description: username user page
+          type: string
+        bio:
+          description: biography for user page
+          type: string
+        img:
+          description: url for image
+          type: string
+        socialLinks:
+          description: links for social media profiles
+          items:
+            $ref: '#/components/schemas/SocialLink'
+          type: array
+        links:
+          description: custom definable links
+          items:
+            $ref: '#/components/schemas/Link'
+          type: array
+      required:
+      - id
+      - name
       type: object
+    Link:
+      example:
+        name: name
+        link: link
+      properties:
+        name:
+          description: alias for link
+          type: string
+        link:
+          description: url of a link
+          type: string
+      required:
+      - link
+      - name
+      type: object
+    SocialLink:
+      $ref: '#/components/schemas/Link'
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

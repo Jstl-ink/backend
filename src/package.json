@@ -1,7 +1,7 @@
 {
   "name":  "jstl-ink-api",
   "version": "0.1.0",
-  "description": "Jstl.ink description",
+  "description": "Jstl.ink gives users the ability to easily create simple pages containing for  them relevant links and their social media profiles",
   "main": "index.js",
   "scripts": {
     "prestart": "npm install",
