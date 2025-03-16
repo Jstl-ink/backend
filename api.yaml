@@ -41,9 +41,16 @@ paths:
         - creator
       summary: Create new user page
       operationId: createPage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Id'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: PageId already exists
         '200':
           $ref: '#/components/responses/PageResponse'
       security:
@@ -151,8 +158,7 @@ components:
   schemas:
     Id:
       description: ID of page
-      type: integer
-      format: int64
+      type: string
 
     Page:
       type: object
