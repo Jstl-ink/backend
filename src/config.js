@@ -4,7 +4,7 @@ const config = {
   ROOT_DIR: __dirname,
   URL_PORT: 8080,
   URL_PATH: 'http://localhost',
-  BASE_VERSION: '/api',
+  BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
 };
