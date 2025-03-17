@@ -18,6 +18,7 @@ const getPageById = ({ pageId }) => new Promise(
         img: 'https://unsplash.com/photos/QO1TfIj9c2I/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzQyMTU3MDgzfA&force=true',
         socialLinks: [
           { name: 'Instagram', link: 'https://www.instagram.com' },
+          { name: 'Twitter', link: 'https://www.twitter.com' },
         ],
         links: [
           { name: 'My Bay', link: 'https://de.wikipedia.org/wiki/The_Pirate_Bay' },
