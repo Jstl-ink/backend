@@ -8,8 +8,8 @@ info:
   title: Jstl.ink API
   version: 0.1.0
 servers:
-- url: localhost:8080
-- url: https://jstl.ink
+- url: localhost:8080/api
+- url: https://jstl.ink.paulus.rocks/api
 tags:
 - description: Everything about jstlink pages
   name: page
