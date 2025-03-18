@@ -24,12 +24,15 @@ const createLinkByPageId = ({ pageId }) => new Promise(
 /**
 * Create new user page
 *
-* body String  (optional)
+* body CreatePageRequest 
 * returns Page
 * */
 const createPage = ({ body }) => new Promise(
   async (resolve, reject) => {
     try {
+      const { id } = body;
+      console.log(id);
+      // TODO create table with name of id (= email)
       resolve(Service.successResponse({
         body,
       }));
@@ -105,15 +108,15 @@ const logoutUser = ({ pageId }) => new Promise(
 * Update a link on user page
 *
 * pageId String ID of order that needs to be fetched
-* link Link  (optional)
+* body Link 
 * returns Link
 * */
-const updateLinkByPageId = ({ pageId, link }) => new Promise(
+const updateLinkByPageId = ({ pageId, body }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         pageId,
-        link,
+        body,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -127,7 +130,7 @@ const updateLinkByPageId = ({ pageId, link }) => new Promise(
 * Update a social link on user page
 *
 * pageId String ID of order that needs to be fetched
-* body Link  (optional)
+* body Link 
 * returns Link
 * */
 const updateSocialLinkByPageId = ({ pageId, body }) => new Promise(
