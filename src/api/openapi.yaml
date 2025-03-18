@@ -52,7 +52,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Id'
+              $ref: '#/components/schemas/createPage_request'
         required: true
       responses:
         "401":
@@ -335,6 +335,12 @@ components:
       type: object
     SocialLink:
       $ref: '#/components/schemas/Link'
+    createPage_request:
+      properties:
+        id:
+          description: ID of page
+          type: string
+      type: object
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

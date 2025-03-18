@@ -46,7 +46,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Id'
+              type: object
+              properties:
+                id:
+                  $ref: '#/components/schemas/Id'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
