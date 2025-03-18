@@ -67,26 +67,6 @@ const deletePageByPageId = ({ pageId }) => new Promise(
   },
 );
 /**
-* Get the creator page
-*
-* pageId String ID of order that needs to be fetched
-* returns Page
-* */
-const getCreatorPageById = ({ pageId }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        pageId,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
-/**
 * Logout user from creator page
 *
 * pageId String ID of order that needs to be fetched
@@ -155,7 +135,6 @@ module.exports = {
   createLinkByPageId,
   createPage,
   deletePageByPageId,
-  getCreatorPageById,
   logoutUser,
   updatePageByPageId,
   updateSocialLinkByPageId,

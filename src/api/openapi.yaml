@@ -98,35 +98,6 @@ paths:
       tags:
       - creator
       x-eov-operation-handler: controllers/CreatorController
-    get:
-      operationId: getCreatorPageById
-      parameters:
-      - description: ID of order that needs to be fetched
-        explode: false
-        in: path
-        name: pageId
-        required: true
-        schema:
-          $ref: '#/components/schemas/Id'
-        style: simple
-      responses:
-        "401":
-          description: Access token is missing or invalid
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Page'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Page'
-          description: successful operation
-      security:
-      - bearerAuth: []
-      summary: Get the creator page
-      tags:
-      - creator
-      x-eov-operation-handler: controllers/CreatorController
     patch:
       operationId: updatePageByPageId
       parameters:

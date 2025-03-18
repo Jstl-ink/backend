@@ -20,10 +20,6 @@ const deletePageByPageId = async (request, response) => {
   await Controller.handleRequest(request, response, service.deletePageByPageId);
 };
 
-const getCreatorPageById = async (request, response) => {
-  await Controller.handleRequest(request, response, service.getCreatorPageById);
-};
-
 const logoutUser = async (request, response) => {
   await Controller.handleRequest(request, response, service.logoutUser);
 };
@@ -41,7 +37,6 @@ module.exports = {
   createLinkByPageId,
   createPage,
   deletePageByPageId,
-  getCreatorPageById,
   logoutUser,
   updatePageByPageId,
   updateSocialLinkByPageId,

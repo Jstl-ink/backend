@@ -62,20 +62,6 @@ paths:
         - bearerAuth: [ ]
 
   /creator/{pageId}:
-    get:
-      tags:
-        - creator
-      summary: Get the creator page
-      operationId: getCreatorPageById
-      parameters:
-        - $ref: '#/components/parameters/PageId'
-      responses:
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '200':
-          $ref: '#/components/responses/PageResponse'
-      security:
-        - bearerAuth: [ ]
     post:
       tags:
         - creator
