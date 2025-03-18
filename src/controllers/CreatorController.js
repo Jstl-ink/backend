@@ -28,8 +28,8 @@ const logoutUser = async (request, response) => {
   await Controller.handleRequest(request, response, service.logoutUser);
 };
 
-const updateLinkByPageId = async (request, response) => {
-  await Controller.handleRequest(request, response, service.updateLinkByPageId);
+const updatePageByPageId = async (request, response) => {
+  await Controller.handleRequest(request, response, service.updatePageByPageId);
 };
 
 const updateSocialLinkByPageId = async (request, response) => {
@@ -43,6 +43,6 @@ module.exports = {
   deletePageByPageId,
   getCreatorPageById,
   logoutUser,
-  updateLinkByPageId,
+  updatePageByPageId,
   updateSocialLinkByPageId,
 };

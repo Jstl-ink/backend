@@ -139,8 +139,8 @@ paths:
     patch:
       tags:
         - creator
-      summary: Update a link on user page
-      operationId: updateLinkByPageId
+      summary: Update page details of user page
+      operationId: updatePageByPageId
       parameters:
         - $ref: '#/components/parameters/PageId'
       requestBody:
@@ -149,12 +149,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Link'
+              $ref: '#/components/schemas/Page'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '200':
-          $ref: '#/components/responses/LinkResponse'
+          $ref: '#/components/responses/PageResponse'
       security:
         - bearerAuth: [ ]
 

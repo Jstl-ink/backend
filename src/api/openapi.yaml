@@ -128,7 +128,7 @@ paths:
       - creator
       x-eov-operation-handler: controllers/CreatorController
     patch:
-      operationId: updateLinkByPageId
+      operationId: updatePageByPageId
       parameters:
       - description: ID of order that needs to be fetched
         explode: false
@@ -142,7 +142,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Link'
+              $ref: '#/components/schemas/Page'
         required: true
         x-codegen-request-body-name: body
       responses:
@@ -152,14 +152,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Link'
+                $ref: '#/components/schemas/Page'
             application/xml:
               schema:
-                $ref: '#/components/schemas/Link'
+                $ref: '#/components/schemas/Page'
           description: successful operation
       security:
       - bearerAuth: []
-      summary: Update a link on user page
+      summary: Update page details of user page
       tags:
       - creator
       x-eov-operation-handler: controllers/CreatorController

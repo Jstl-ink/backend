@@ -107,13 +107,13 @@ const logoutUser = ({ pageId }) => new Promise(
   },
 );
 /**
-* Update a link on user page
+* Update page details of user page
 *
 * pageId String ID of order that needs to be fetched
-* body Link
-* returns Link
+* body Page
+* returns Page
 * */
-const updateLinkByPageId = ({ pageId, body }) => new Promise(
+const updatePageByPageId = ({ pageId, body }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
@@ -157,6 +157,6 @@ module.exports = {
   deletePageByPageId,
   getCreatorPageById,
   logoutUser,
-  updateLinkByPageId,
+  updatePageByPageId,
   updateSocialLinkByPageId,
 };
