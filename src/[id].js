@@ -1,32 +1,50 @@
 import { google } from 'googleapis';
-import {content} from "googleapis/build/src/apis/content";
 
-//fetch data to frontend component(server-side)
-export async function getServerSide({query}){
-   //Auth
-    const auth = await google.auth.getClient({scopes: ['https://docs.google.com/spreadsheets/d/1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8']});
-    const sheets = google.sheets({version:'v4',auth});
+export async function getServerSideProps({ query }) {
+    const { id } = query;
 
-    //Query
-    const {id} =query;
+    const auth = await google.auth.getClient({
+        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const SPREADSHEET_ID = process.env.SHEET_ID; // assigning sheet id from env-file
+
+    // Which lines are read
     const range = `Sheet1!A${id}:C${id}`;
 
     const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: process.env.SHEET_ID,
+        spreadsheetId: SPREADSHEET_ID,
         range,
     });
 
+    const rows = response.data.values;
+
+    if (!rows || rows.length === 0) {
+        return {
+            notFound: true,
+        };
+    }
+
+    //specific row gets initialised data
+    const [pageId, title, content] = rows[0];
+
     return {
         props: {
+            pageId,
             title,
-            content
-        }
-    }
+            content,
+        },
+    };
 }
 
-export default function Post({title, content}){
-    return <article>
-        <h1>{title}</h1>
-        <div></div>
-    </article>
+export default function Post({ pageId, title, content }) {
+    return (
+        <article>
+            <h1>{title}</h1>
+            <p>{content}</p>
+            <p><small>Page ID: {pageId}</small></p>
+        </article>
+    );
 }
