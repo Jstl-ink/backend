@@ -11,5 +11,9 @@
     "type": "git",
     "url": "https://github.com/Jstl-ink/backend.git"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@googleapis/drive": "^8.16.0",
+    "googleapis": "^146.0.0"
+  }
 }
