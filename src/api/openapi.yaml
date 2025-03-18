@@ -53,6 +53,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Id'
+        required: true
       responses:
         "401":
           description: Access token is missing or invalid

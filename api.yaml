@@ -42,6 +42,7 @@ paths:
       summary: Create new user page
       operationId: createPage
       requestBody:
+        required: true
         content:
           application/json:
             schema:
