@@ -9,7 +9,7 @@ info:
   version: 0.1.0
 servers:
 - url: localhost:8080
-- url: https://jstl.ink
+- url: https://api.jstl.ink.paulus.rocks
 tags:
 - description: Everything about jstlink pages
   name: page
@@ -48,9 +48,16 @@ paths:
   /creator:
     post:
       operationId: createPage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Id'
       responses:
         "401":
           description: Access token is missing or invalid
+        "409":
+          description: PageId already exists
         "200":
           content:
             application/json:
@@ -268,8 +275,7 @@ components:
   schemas:
     Id:
       description: ID of page
-      format: int64
-      type: integer
+      type: string
     Page:
       example:
         img: img
@@ -283,12 +289,11 @@ components:
           link: link
         - name: name
           link: link
-        id: 0
+        id: id
       properties:
         id:
           description: ID of page
-          format: int64
-          type: integer
+          type: string
         name:
           description: username user page
           type: string

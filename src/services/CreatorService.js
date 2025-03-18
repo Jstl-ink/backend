@@ -4,7 +4,7 @@ const Service = require('./Service');
 /**
 * Create new link on the user page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * returns Link
 * */
 const createLinkByPageId = ({ pageId }) => new Promise(
@@ -24,12 +24,14 @@ const createLinkByPageId = ({ pageId }) => new Promise(
 /**
 * Create new user page
 *
+* body String  (optional)
 * returns Page
 * */
-const createPage = () => new Promise(
+const createPage = ({ body }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
+        body,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -42,7 +44,7 @@ const createPage = () => new Promise(
 /**
 * Delete a user page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * no response value expected for this operation
 * */
 const deletePageByPageId = ({ pageId }) => new Promise(
@@ -62,7 +64,7 @@ const deletePageByPageId = ({ pageId }) => new Promise(
 /**
 * Get the creator page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * returns Page
 * */
 const getCreatorPageById = ({ pageId }) => new Promise(
@@ -82,7 +84,7 @@ const getCreatorPageById = ({ pageId }) => new Promise(
 /**
 * Logout user from creator page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * no response value expected for this operation
 * */
 const logoutUser = ({ pageId }) => new Promise(
@@ -102,7 +104,7 @@ const logoutUser = ({ pageId }) => new Promise(
 /**
 * Update a link on user page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * link Link  (optional)
 * returns Link
 * */
@@ -124,7 +126,7 @@ const updateLinkByPageId = ({ pageId, link }) => new Promise(
 /**
 * Update a social link on user page
 *
-* pageId Long ID of order that needs to be fetched
+* pageId String ID of order that needs to be fetched
 * body Link  (optional)
 * returns Link
 * */

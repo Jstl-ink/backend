@@ -6,12 +6,9 @@ controllers/Controller.js
 controllers/CreatorController.js
 controllers/PageController.js
 controllers/index.js
-expressServer.js
 index.js
 logger.js
 package.json
-services/CreatorService.js
-services/PageService.js
 services/Service.js
 services/index.js
 utils/openapiRouter.js
