@@ -83,6 +83,13 @@ paths:
       operationId: createLinkByPageId
       parameters:
         - $ref: '#/components/parameters/PageId'
+      requestBody:
+        required: true
+        x-codegen-request-body-name: body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Link'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
@@ -200,9 +207,12 @@ components:
     Link:
       type: object
       required:
+        - id
         - name
         - link
       properties:
+        id:
+          type: integer
         name:
           description: alias for link
           type: string

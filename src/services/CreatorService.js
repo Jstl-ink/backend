@@ -5,13 +5,15 @@ const Service = require('./Service');
 * Create new link on the user page
 *
 * pageId String ID of order that needs to be fetched
+* body Link
 * returns Link
 * */
-const createLinkByPageId = ({ pageId }) => new Promise(
+const createLinkByPageId = ({ pageId, body }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         pageId,
+        body,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -24,7 +26,7 @@ const createLinkByPageId = ({ pageId }) => new Promise(
 /**
 * Create new user page
 *
-* body CreatePageRequest 
+* body CreatePageRequest
 * returns Page
 * */
 const createPage = ({ body }) => new Promise(
@@ -108,7 +110,7 @@ const logoutUser = ({ pageId }) => new Promise(
 * Update a link on user page
 *
 * pageId String ID of order that needs to be fetched
-* body Link 
+* body Link
 * returns Link
 * */
 const updateLinkByPageId = ({ pageId, body }) => new Promise(
@@ -130,7 +132,7 @@ const updateLinkByPageId = ({ pageId, body }) => new Promise(
 * Update a social link on user page
 *
 * pageId String ID of order that needs to be fetched
-* body Link 
+* body Link
 * returns Link
 * */
 const updateSocialLinkByPageId = ({ pageId, body }) => new Promise(
