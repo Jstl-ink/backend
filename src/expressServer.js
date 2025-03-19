@@ -9,8 +9,10 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const OpenApiValidator = require('express-openapi-validator');
+const { auth } = require('express-oauth2-jwt-bearer');
 const logger = require('./logger');
 const config = require('./config');
+require('dotenv').config({ path: ['../.env'] });
 
 class ExpressServer {
   constructor(port, openApiYaml) {
@@ -34,6 +36,12 @@ class ExpressServer {
     this.app.use(cookieParser());
     // View the openapi document in a visual interface. Should be able to test from this page
     this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(this.schema));
+
+    const checkJwt = auth({
+      audience: process.env.AUTH0_AUDIENCE,
+      issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+    });
+
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: this.openApiPath,
@@ -41,11 +49,9 @@ class ExpressServer {
         fileUploader: { dest: config.FILE_UPLOAD_PATH },
         validateSecurity: {
           handlers: {
-            bearerAuth: (req, scopes, schema) => {
-              console.log('Bearer Auth', req, scopes, schema);
-              // throw Error('Authentication required');
-              return true;
-            },
+            bearerAuth: (req) => new Promise((resolve, reject) => {
+              checkJwt(req, req.res, (err) => (err ? reject(false) : resolve(true)));
+            }),
           },
         },
       }),

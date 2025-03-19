@@ -11,5 +11,9 @@
     "type": "git",
     "url": "https://github.com/Jstl-ink/backend.git"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express-oauth2-jwt-bearer": "^1.6.1"
+  }
 }
