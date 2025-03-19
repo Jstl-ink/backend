@@ -137,3 +137,5 @@ dist
 /.idea/
 
 /google-credentials.json
+/package-lock.json
+/openapitools.json
