@@ -1,10 +1,7 @@
 const Service = require('./Service');
-const GoogleSheetsService = require('./GoogleSheetsService');
-
 const getPageById = ({ pageId }) => new Promise(
     async (resolve, reject) => {
       try {
-        const pages = await GoogleSheetsService.getPagesFromSheet();
 
         const page = pages.find(p => p.id === pageId);
 
