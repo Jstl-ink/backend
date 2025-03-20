@@ -18,158 +18,108 @@ async function getAuthClient() {
 
 const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
 
-// Get all data
-async function readSheet() {
+// Helper: Hole alle Daten als Array von Objekten
+async function getAllPages() {
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
 
   const getRows = await googleSheets.spreadsheets.values.get({
-    auth,
     spreadsheetId,
-    range: 'person1!A2:E',
+    range: 'person1!A2:F',
   });
 
   const rows = getRows.data.values || [];
 
   return rows.map((row) => ({
     id: row[0],
-    firstname: row[1],
-    lastname: row[2],
-    picture: row[3],
-    link: row[4],
+    name: row[1],
+    picture: row[2],
+    link: row[3],
+    socialLink: row[4],
   }));
 }
 
-// Add entry to sheet
-async function writeSheet({
-  id, firstname, lastname, picture, link,
+// Create Page (Jetzt erwartet es nur name)
+async function createPage({
+  id, name, picture, link, socialLink,
 }) {
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
 
   await googleSheets.spreadsheets.values.append({
-    auth,
     spreadsheetId,
-    range: 'person1!A:E',
+    range: 'person1!A:F', // Range muss an das Format deines Sheets angepasst werden
     valueInputOption: 'USER_ENTERED',
     resource: {
-      values: [[id, firstname, lastname, picture, link]],
+      values: [[id, name, picture, link, socialLink]], // Hier nur name, keine Namensteile
     },
   });
 
   return { message: 'Row successfully added.' };
 }
 
-// Delete entry by id
-async function deleteFromSheet(id) {
-  const client = await getAuthClient();
-  const googleSheets = google.sheets({ version: 'v4', auth: client });
-
-  const getRows = await googleSheets.spreadsheets.values.get({
-    auth,
-    spreadsheetId,
-    range: 'person1!A2:E',
-  });
-
-  const rows = getRows.data.values;
-  const rowIndex = rows.findIndex((row) => row[0] === id);
-
-  if (rowIndex === -1) {
-    throw new Error(`No row with id ${id} found.`);
-  }
-
-  await googleSheets.spreadsheets.values.clear({
-    auth,
-    spreadsheetId,
-    range: `person1!A${rowIndex + 2}:E${rowIndex + 2}`,
-  });
-
-  return { message: `Row with ID ${id} successfully deleted.` };
-}
-
-// Find page by id
-async function findPageById(pageId) {
-  const pages = await readSheet();
+// Get Page by ID
+async function getCreatorPageById(pageId) {
+  const pages = await getAllPages();
   return pages.find((page) => page.id === pageId);
 }
 
-// Update link
-async function updateLink({
-  id, firstname, lastname, picture, link,
-}) {
-  await deleteFromSheet(id); // delete entry
-  await writeSheet({
-    id, firstname, lastname, picture, link,
-  }); // add new entry with updated link
-  return { message: `Row with ID ${id} successfully updated.` };
+// Delete Page by ID
+async function deletePageByPageId(pageId) {
+  const client = await getAuthClient();
+  const googleSheets = google.sheets({ version: 'v4', auth: client });
+
+  const pages = await getAllPages();
+  const rowIndex = pages.findIndex((page) => page.id === pageId);
+
+  if (rowIndex === -1) {
+    throw new Error(`No page with id ${pageId} found.`);
+  }
+
+  await googleSheets.spreadsheets.values.clear({
+    spreadsheetId,
+    range: `person1!A${rowIndex + 2}:F${rowIndex + 2}`,
+  });
+
+  return { message: `Page with ID ${pageId} successfully deleted.` };
 }
 
-// Update socialLink
-async function updateSocialLink({
-  id, firstname, lastname, picture, socialLink,
-}) {
-  return updateLink({
-    id, firstname, lastname, picture, socialLink,
+// Update Link by Page ID
+async function updateLinkByPageId(pageId, link) {
+  const page = await getCreatorPageById(pageId);
+
+  if (!page) throw new Error(`No page with id ${pageId} found.`);
+
+  // Delete old entry
+  await deletePageByPageId(pageId);
+
+  // Create new entry with updated link
+  return createPage({
+    ...page,
+    link, // overwrite with updated link
   });
 }
 
-// logout user
-async function logout(pageId) {
-  try {
-    const client = await getAuthClient();
-    const googleSheets = google.sheets({ version: 'v4', auth: client });
-    // eslint-disable-next-line no-shadow
-    const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
+// Update Social Link by Page ID
+async function updateSocialLinkByPageId(pageId, socialLink) {
+  const page = await getCreatorPageById(pageId);
 
-    // get all rows
-    const getRows = await googleSheets.spreadsheets.values.get({
-      auth: client,
-      spreadsheetId,
-      range: 'person1!A2:F', // F-column is the login-status
-    });
+  if (!page) throw new Error(`No page with id ${pageId} found.`);
 
-    const rows = getRows.data.values;
+  // Delete old entry
+  await deletePageByPageId(pageId);
 
-    if (!rows || rows.length === 0) {
-      throw new Error('No data found.');
-    }
-
-    // Index der Zeile mit der passenden pageId finden
-    const rowIndex = rows.findIndex((row) => row[0] === pageId);
-
-    if (rowIndex === -1) {
-      throw new Error(`No row with pageId ${pageId} found.`);
-    }
-
-    // log out user
-    const updateResponse = await googleSheets.spreadsheets.values.update({
-      auth: client,
-      spreadsheetId,
-      range: `person1!F${rowIndex + 2}`, // get to login column
-      valueInputOption: 'USER_ENTERED',
-      resource: {
-        values: [['FALSE']],
-      },
-    });
-
-    console.log(`User ${pageId} has been logged out.`);
-
-    return {
-      message: `User ${pageId} successfully logged out.`,
-      result: updateResponse.data,
-    };
-  } catch (error) {
-    console.error('Error during logout:', error);
-    throw new Error('Logout failed');
-  }
+  // Create new entry with updated socialLink
+  return createPage({
+    ...page,
+    socialLink, // overwrite with updated socialLink
+  });
 }
 
 module.exports = {
-  readSheet,
-  writeSheet,
-  deleteFromSheet,
-  findPageById,
-  updateLink,
-  updateSocialLink,
-  logout,
+  getCreatorPageById,
+  createPage,
+  deletePageByPageId,
+  updateLinkByPageId,
+  updateSocialLinkByPageId,
 };
