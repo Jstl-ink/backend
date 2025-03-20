@@ -10,7 +10,7 @@ const PageService = require('../services/PageService');
 
 const getPageById = async (req, res) => {
   try {
-    const pageId = req.params.pageId;
+    const { pageId } = req.params;
     const response = await PageService.getPageById({ pageId });
     res.status(200).json(response);
   } catch (err) {
@@ -20,8 +20,12 @@ const getPageById = async (req, res) => {
 
 const createPage = async (req, res) => {
   try {
-    const { id, name, bio, img } = req.body;
-    const response = await PageService.createPage({ id, name, bio, img });
+    const {
+      id, name, bio, img,
+    } = req.body;
+    const response = await PageService.createPage({
+      id, name, bio, img,
+    });
     res.status(201).json(response);
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
@@ -30,7 +34,7 @@ const createPage = async (req, res) => {
 
 const addLink = async (req, res) => {
   try {
-    const pageId = req.params.pageId;
+    const { pageId } = req.params;
     const link = req.body;
     const response = await PageService.addLinkToPage({ pageId, link });
     res.status(200).json(response);
@@ -42,5 +46,5 @@ const addLink = async (req, res) => {
 module.exports = {
   getPageById,
   createPage,
-  addLink
+  addLink,
 };

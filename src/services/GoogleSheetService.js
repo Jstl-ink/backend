@@ -1,153 +1,175 @@
-const express = require("express");
-const { google } = require("googleapis");
-const path = require("path");
-const CreatorService = require('./CreatorService');
-const PageService = require('./PageService');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { google } = require('googleapis');
+const path = require('path');
 
-const app = express();
-// Enable JSON-Parsing
-app.use(express.json());
-
-// Google Sheets Auth Setup
 const auth = new google.auth.GoogleAuth({
-    keyFile: path.join(__dirname, "../../google-credentials.json"),
-    scopes: "https://www.googleapis.com/auth/spreadsheets",
+  keyFile: path.join(__dirname, '../../google-credentials.json'),
+  scopes: 'https://www.googleapis.com/auth/spreadsheets',
 });
 
-// function to get auth of client
 async function getAuthClient() {
-    try {
-        return await auth.getClient();
-    } catch (error) {
-        console.error("Error getting GoogleAuth client:", error);
-        throw new Error("Authentication failed");
-    }
+  try {
+    return await auth.getClient();
+  } catch (error) {
+    console.error('Error getting GoogleAuth client:', error);
+    throw new Error('Authentication failed');
+  }
 }
 
-// GET-Endpoint e.g ({URL}/<searchterm>)
-app.get("/:searchTerm", async (req, res) => {
-    const searchTerm = req.params.searchTerm.toLowerCase(); // get search term from the URL
+const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
 
-    try {
-        const client = await getAuthClient();
-        const googleSheets = google.sheets({ version: "v4", auth: client });
-        const spreadsheetId = "1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8";
+// Get all data
+async function readSheet() {
+  const client = await getAuthClient();
+  const googleSheets = google.sheets({ version: 'v4', auth: client });
 
-        const getRows = await googleSheets.spreadsheets.values.get({
-            auth,
-            spreadsheetId,
-            range: "person1!A2:E",
-        });
+  const getRows = await googleSheets.spreadsheets.values.get({
+    auth,
+    spreadsheetId,
+    range: 'person1!A2:E',
+  });
 
-        const rows = getRows.data.values;
+  const rows = getRows.data.values || [];
 
-        if (!rows || rows.length === 0) {
-            return res.status(404).send("No data found.");
-        }
+  return rows.map((row) => ({
+    id: row[0],
+    firstname: row[1],
+    lastname: row[2],
+    picture: row[3],
+    link: row[4],
+  }));
+}
 
-        // Search for all occurrences of the search term across all columns
-        const foundRows = rows.filter((row) => {
-            // Convert each row field to lowercase and check if it includes the search term
-            return row.some((field) => field.toLowerCase().includes(searchTerm));
-        });
+// Add entry to sheet
+async function writeSheet({
+  id, firstname, lastname, picture, link,
+}) {
+  const client = await getAuthClient();
+  const googleSheets = google.sheets({ version: 'v4', auth: client });
 
-        if (foundRows.length === 0) {
-            return res.status(404).send(`No matches found for '${searchTerm}'.`);
-        }
+  await googleSheets.spreadsheets.values.append({
+    auth,
+    spreadsheetId,
+    range: 'person1!A:E',
+    valueInputOption: 'USER_ENTERED',
+    resource: {
+      values: [[id, firstname, lastname, picture, link]],
+    },
+  });
 
-        // Return all matching rows
-        const result = foundRows.map((row) => ({
-            id: row[0],
-            firstname: row[1],
-            lastname: row[2],
-            picture: row[3],
-            link: row[4],
-        }));
+  return { message: 'Row successfully added.' };
+}
 
-        res.json(result);
-    } catch (error) {
-        console.error("Error when trying to access the sheet:", error);
-        res.status(500).send("Server Error");
+// Delete entry by id
+async function deleteFromSheet(id) {
+  const client = await getAuthClient();
+  const googleSheets = google.sheets({ version: 'v4', auth: client });
+
+  const getRows = await googleSheets.spreadsheets.values.get({
+    auth,
+    spreadsheetId,
+    range: 'person1!A2:E',
+  });
+
+  const rows = getRows.data.values;
+  const rowIndex = rows.findIndex((row) => row[0] === id);
+
+  if (rowIndex === -1) {
+    throw new Error(`No row with id ${id} found.`);
+  }
+
+  await googleSheets.spreadsheets.values.clear({
+    auth,
+    spreadsheetId,
+    range: `person1!A${rowIndex + 2}:E${rowIndex + 2}`,
+  });
+
+  return { message: `Row with ID ${id} successfully deleted.` };
+}
+
+// Find page by id
+async function findPageById(pageId) {
+  const pages = await readSheet();
+  return pages.find((page) => page.id === pageId);
+}
+
+// Update link
+async function updateLink({
+  id, firstname, lastname, picture, link,
+}) {
+  await deleteFromSheet(id); // delete entry
+  await writeSheet({
+    id, firstname, lastname, picture, link,
+  }); // add new entry with updated link
+  return { message: `Row with ID ${id} successfully updated.` };
+}
+
+// Update socialLink
+async function updateSocialLink({
+  id, firstname, lastname, picture, socialLink,
+}) {
+  return updateLink({
+    id, firstname, lastname, picture, socialLink,
+  });
+}
+
+// logout user
+async function logout(pageId) {
+  try {
+    const client = await getAuthClient();
+    const googleSheets = google.sheets({ version: 'v4', auth: client });
+    // eslint-disable-next-line no-shadow
+    const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
+
+    // get all rows
+    const getRows = await googleSheets.spreadsheets.values.get({
+      auth: client,
+      spreadsheetId,
+      range: 'person1!A2:F', // F-column is the login-status
+    });
+
+    const rows = getRows.data.values;
+
+    if (!rows || rows.length === 0) {
+      throw new Error('No data found.');
     }
-});
 
-// POST-Endpoint ({URL}/add) --> test via postman wirh "RAW"- body input in json-format
-app.post("/add", async (req, res) => {
-    const { id, firstname, lastname, picture, link } = req.body;  // Destructure the data from the POST request body
+    // Index der Zeile mit der passenden pageId finden
+    const rowIndex = rows.findIndex((row) => row[0] === pageId);
 
-    // Check if all required fields are provided
-    if (!id || !firstname || !lastname || !picture || !link) {
-        return res.status(400).send("Missing required fields.");
+    if (rowIndex === -1) {
+      throw new Error(`No row with pageId ${pageId} found.`);
     }
 
-    try {
-        const client = await getAuthClient();
-        const googleSheets = google.sheets({ version: "v4", auth: client });
-        const spreadsheetId = "1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8";
+    // log out user
+    const updateResponse = await googleSheets.spreadsheets.values.update({
+      auth: client,
+      spreadsheetId,
+      range: `person1!F${rowIndex + 2}`, // get to login column
+      valueInputOption: 'USER_ENTERED',
+      resource: {
+        values: [['FALSE']],
+      },
+    });
 
-        // Add the new row to the sheet
-        const appendResponse = await googleSheets.spreadsheets.values.append({
-            auth,
-            spreadsheetId,
-            range: "person1!A:E",  // Assuming we are writing to columns A to E (id, firstname, lastname, picture, link)
-            valueInputOption: "USER_ENTERED",
-            resource: {
-                values: [
-                    [id, firstname, lastname, picture, link]  // The new row to be added
-                ]
-            }
-        });
+    console.log(`User ${pageId} has been logged out.`);
 
-        // Respond with success message
-        res.status(201).send("Row successfully added.");
-    } catch (error) {
-        console.error("Error when trying to access the sheet:", error);
-        res.status(500).send("Server Error");
-    }
-});
+    return {
+      message: `User ${pageId} successfully logged out.`,
+      result: updateResponse.data,
+    };
+  } catch (error) {
+    console.error('Error during logout:', error);
+    throw new Error('Logout failed');
+  }
+}
 
-// DELETE-Endpoint ({URL}/delete/<id>)
-app.delete("/delete/:id", async (req, res) => {
-    const { id } = req.params;  // get ID from URL
-
-    try {
-        const client = await getAuthClient();
-        const googleSheets = google.sheets({ version: "v4", auth: client });
-        const spreadsheetId = "1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8";
-
-        // Get all rows
-        const getRows = await googleSheets.spreadsheets.values.get({
-            auth,
-            spreadsheetId,
-            range: "person1!A2:E"
-        });
-
-        const rows = getRows.data.values;
-
-        if (!rows || rows.length === 0) {
-            return res.status(404).send("No data found.");
-        }
-
-        // Search for specific row
-        const rowIndex = rows.findIndex((row) => row[0] === id);
-
-        if (rowIndex === -1) {
-            return res.status(404).send(`No row with id ${id} found.`);
-        }
-
-        // Delete row (using clear instead of deleting entire row)
-        const deleteResponse = await googleSheets.spreadsheets.values.clear({
-            auth,
-            spreadsheetId,
-            range: `person1!A${rowIndex + 2}:E${rowIndex + 2}`,  // rowindex+2 to get correct table start to find specific row
-        });
-
-        res.status(200).send(`Row with ID ${id} successfully deleted.`);
-    } catch (error) {
-        console.error("Error when trying to access the sheet:", error);
-        res.status(500).send("Server Error");
-    }
-});
-
-// Server starten
-app.listen(8080, () => console.log("Running on port 8080"));
+module.exports = {
+  readSheet,
+  writeSheet,
+  deleteFromSheet,
+  findPageById,
+  updateLink,
+  updateSocialLink,
+  logout,
+};
