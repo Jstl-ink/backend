@@ -5,11 +5,21 @@ const Service = require('./Service');
 const createPage = async ({ body }) => {
   try {
     const {
-      id, name, picture, link, socialLink,
+      id,
+      name,
+      bio,
+      img,
+      socialLink,
+      link,
     } = body;
 
     const newPage = await googleSheetsService.createPage({
-      id, name, picture, link, socialLink,
+      id,
+      name,
+      bio,
+      img,
+      socialLink,
+      link,
     });
 
     return Service.successResponse(newPage);
@@ -50,8 +60,23 @@ const getCreatorPageById = async ({ pageId }) => {
 // Update Link by pageId
 const updateLinkByPageId = async ({ pageId, link }) => {
   try {
-    const updatedLink = await googleSheetsService.updateLinkByPageId(pageId, link);
-    return Service.successResponse(updatedLink);
+    const page = await googleSheetsService.getCreatorPageById(pageId);
+
+    if (!page) {
+      return Service.rejectResponse(
+        `No page found with id ${pageId}`,
+        404,
+      );
+    }
+
+    const updatedPage = await googleSheetsService.createPage({
+      ...page,
+      link, // overwrite with updated link
+    });
+
+    await googleSheetsService.deletePageByPageId(pageId);
+
+    return Service.successResponse(updatedPage);
   } catch (e) {
     return Service.rejectResponse(
       e.message || 'Error updating link',
@@ -63,9 +88,23 @@ const updateLinkByPageId = async ({ pageId, link }) => {
 // Update Social Link by pageId
 const updateSocialLinkByPageId = async ({ pageId, socialLink }) => {
   try {
-    const updatedSocialLink = await googleSheetsService
-      .updateSocialLinkByPageId(pageId, socialLink);
-    return Service.successResponse(updatedSocialLink);
+    const page = await googleSheetsService.getCreatorPageById(pageId);
+
+    if (!page) {
+      return Service.rejectResponse(
+        `No page found with id ${pageId}`,
+        404,
+      );
+    }
+
+    const updatedPage = await googleSheetsService.createPage({
+      ...page,
+      socialLink, // overwrite with updated socialLink
+    });
+
+    await googleSheetsService.deletePageByPageId(pageId);
+
+    return Service.successResponse(updatedPage);
   } catch (e) {
     return Service.rejectResponse(
       e.message || 'Error updating social link',

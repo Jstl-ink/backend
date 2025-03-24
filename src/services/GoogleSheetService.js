@@ -33,25 +33,26 @@ async function getAllPages() {
   return rows.map((row) => ({
     id: row[0],
     name: row[1],
-    picture: row[2],
-    link: row[3],
+    bio: row[2],
+    img: row[3],
     socialLink: row[4],
+    link: row[5],
   }));
 }
 
-// Create Page (Jetzt erwartet es nur name)
+// add entry too page
 async function createPage({
-  id, name, picture, link, socialLink,
+  id, name, bio, img, socialLink, link,
 }) {
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
 
   await googleSheets.spreadsheets.values.append({
     spreadsheetId,
-    range: 'person1!A:F', // Range muss an das Format deines Sheets angepasst werden
+    range: 'person1!A:F',
     valueInputOption: 'USER_ENTERED',
     resource: {
-      values: [[id, name, picture, link, socialLink]], // Hier nur name, keine Namensteile
+      values: [[id, name, bio, img, socialLink, link]],
     },
   });
 
