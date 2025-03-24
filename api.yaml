@@ -229,18 +229,12 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Link'#
-        application/xml:
-          schema:
             $ref: '#/components/schemas/Link'
 
     PageResponse:
       description: successful operation
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Page'
-        application/xml:
           schema:
             $ref: '#/components/schemas/Page'
 
