@@ -18,7 +18,16 @@ async function getAuthClient() {
 
 const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
 
-// Helper: Hole alle Daten als Array von Objekten
+// Try to parse json, if wrong parmams return empty json
+function parseJson(value) {
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return [];
+  }
+}
+
+// Helper: Get all data as array from objs
 async function getAllPages() {
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
@@ -31,18 +40,18 @@ async function getAllPages() {
   const rows = getRows.data.values || [];
 
   return rows.map((row) => ({
-    id: row[0],
-    name: row[1],
-    bio: row[2],
-    img: row[3],
-    socialLink: row[4],
-    link: row[5],
+    id: row[0] || '',
+    name: row[1] || '',
+    bio: row[2] || '',
+    img: row[3] || '',
+    socialLinks: parseJson(row[4]) || [],
+    links: parseJson(row[5]) || [],
   }));
 }
 
 // add entry too page
 async function createPage({
-  id, name, bio, img, socialLink, link,
+  id, name, bio, img, socialLinks, links,
 }) {
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
@@ -52,7 +61,7 @@ async function createPage({
     range: 'person1!A:F',
     valueInputOption: 'USER_ENTERED',
     resource: {
-      values: [[id, name, bio, img, socialLink, link]],
+      values: [[id, name, bio, img, JSON.stringify(socialLinks), JSON.stringify(links)]],
     },
   });
 

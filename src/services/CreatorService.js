@@ -5,21 +5,19 @@ const Service = require('./Service');
 const createPage = async ({ body }) => {
   try {
     const {
-      id,
-      name,
-      bio,
-      img,
-      socialLink,
-      link,
+      id, name, bio, img, socialLinks, links,
     } = body;
+
+    const formattedSocialLinks = Array.isArray(socialLinks) ? socialLinks : [];
+    const formattedLinks = Array.isArray(links) ? links : [];
 
     const newPage = await googleSheetsService.createPage({
       id,
       name,
       bio,
       img,
-      socialLink,
-      link,
+      socialLinks: formattedSocialLinks,
+      links: formattedLinks,
     });
 
     return Service.successResponse(newPage);
@@ -58,56 +56,34 @@ const getCreatorPageById = async ({ pageId }) => {
 };
 
 // Update Link by pageId
-const updateLinkByPageId = async ({ pageId, link }) => {
+const updateLinkByPageId = async ({ pageId, links }) => {
   try {
     const page = await googleSheetsService.getCreatorPageById(pageId);
+    if (!page) throw new Error(`No page with id ${pageId} found.`);
 
-    if (!page) {
-      return Service.rejectResponse(
-        `No page found with id ${pageId}`,
-        404,
-      );
-    }
-
-    const updatedPage = await googleSheetsService.createPage({
-      ...page,
-      link, // overwrite with updated link
-    });
-
-    await googleSheetsService.deletePageByPageId(pageId);
+    const updatedPage = await googleSheetsService.updateLinkByPageId(pageId, links);
 
     return Service.successResponse(updatedPage);
   } catch (e) {
     return Service.rejectResponse(
-      e.message || 'Error updating link',
+      e.message || 'Error updating links',
       e.status || 500,
     );
   }
 };
 
-// Update Social Link by pageId
-const updateSocialLinkByPageId = async ({ pageId, socialLink }) => {
+// Update social link by pageId
+const updateSocialLinkByPageId = async ({ pageId, socialLinks }) => {
   try {
     const page = await googleSheetsService.getCreatorPageById(pageId);
+    if (!page) throw new Error(`No page with id ${pageId} found.`);
 
-    if (!page) {
-      return Service.rejectResponse(
-        `No page found with id ${pageId}`,
-        404,
-      );
-    }
-
-    const updatedPage = await googleSheetsService.createPage({
-      ...page,
-      socialLink, // overwrite with updated socialLink
-    });
-
-    await googleSheetsService.deletePageByPageId(pageId);
+    const updatedPage = await googleSheetsService.updateSocialLinkByPageId(pageId, socialLinks);
 
     return Service.successResponse(updatedPage);
   } catch (e) {
     return Service.rejectResponse(
-      e.message || 'Error updating social link',
+      e.message || 'Error updating social links',
       e.status || 500,
     );
   }
