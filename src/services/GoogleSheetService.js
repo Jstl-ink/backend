@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { google } = require('googleapis');
 const path = require('path');
+const { NotFound } = require('express-openapi-validator/dist/framework/types');
 
 const auth = new google.auth.GoogleAuth({
   keyFile: path.join(__dirname, '../../google-credentials.json'),
@@ -18,7 +19,7 @@ async function getAuthClient() {
 
 const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
 
-// Try to parse json, if wrong parmams return empty json
+// Try to parse json, if wrong params return empty json
 function parseJson(value) {
   try {
     return JSON.parse(value);
@@ -56,7 +57,7 @@ async function createPage({
   const client = await getAuthClient();
   const googleSheets = google.sheets({ version: 'v4', auth: client });
 
-  await googleSheets.spreadsheets.values.append({
+  const response = await googleSheets.spreadsheets.values.append({
     spreadsheetId,
     range: 'person1!A:F',
     valueInputOption: 'USER_ENTERED',
@@ -65,6 +66,9 @@ async function createPage({
     },
   });
 
+  console.log(response);
+
+  // TODO consider taking into account the actual repsonse?
   return { message: 'Row successfully added.' };
 }
 
@@ -83,7 +87,7 @@ async function deletePageByPageId(pageId) {
   const rowIndex = pages.findIndex((page) => page.id === pageId);
 
   if (rowIndex === -1) {
-    throw new Error(`No page with id ${pageId} found.`);
+    throw new NotFound({ path: `${pageId}`, message: `No page with id ${pageId} found.` });
   }
 
   await googleSheets.spreadsheets.values.clear({
@@ -94,42 +98,8 @@ async function deletePageByPageId(pageId) {
   return { message: `Page with ID ${pageId} successfully deleted.` };
 }
 
-// Update Link by Page ID
-async function updateLinkByPageId(pageId, link) {
-  const page = await getCreatorPageById(pageId);
-
-  if (!page) throw new Error(`No page with id ${pageId} found.`);
-
-  // Delete old entry
-  await deletePageByPageId(pageId);
-
-  // Create new entry with updated link
-  return createPage({
-    ...page,
-    link, // overwrite with updated link
-  });
-}
-
-// Update Social Link by Page ID
-async function updateSocialLinkByPageId(pageId, socialLink) {
-  const page = await getCreatorPageById(pageId);
-
-  if (!page) throw new Error(`No page with id ${pageId} found.`);
-
-  // Delete old entry
-  await deletePageByPageId(pageId);
-
-  // Create new entry with updated socialLink
-  return createPage({
-    ...page,
-    socialLink, // overwrite with updated socialLink
-  });
-}
-
 module.exports = {
   getCreatorPageById,
   createPage,
   deletePageByPageId,
-  updateLinkByPageId,
-  updateSocialLinkByPageId,
 };

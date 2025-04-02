@@ -35,9 +35,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Page'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Page'
           description: successful operation
         "404":
           description: Page not found
@@ -49,10 +46,7 @@ paths:
     post:
       operationId: createPage
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Id'
+        $ref: '#/components/requestBodies/PageId'
       responses:
         "401":
           description: Access token is missing or invalid
@@ -63,15 +57,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Page'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Page'
           description: successful operation
       security:
       - bearerAuth: []
       summary: Create new user page
       tags:
       - creator
+      x-codegen-request-body-name: body
       x-eov-operation-handler: controllers/CreatorController
   /creator/{pageId}:
     delete:
@@ -115,9 +107,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Page'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Page'
           description: successful operation
       security:
       - bearerAuth: []
@@ -126,7 +115,7 @@ paths:
       - creator
       x-eov-operation-handler: controllers/CreatorController
     patch:
-      operationId: updateLinkByPageId
+      operationId: updatePageDetailsByPageId
       parameters:
       - description: ID of order that needs to be fetched
         explode: false
@@ -137,10 +126,7 @@ paths:
           $ref: '#/components/schemas/Id'
         style: simple
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Link'
+        $ref: '#/components/requestBodies/Page'
       responses:
         "401":
           description: Access token is missing or invalid
@@ -149,47 +135,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Link'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Link'
           description: successful operation
       security:
       - bearerAuth: []
-      summary: Update a link on user page
+      summary: Update details of user page
       tags:
       - creator
-      x-eov-operation-handler: controllers/CreatorController
-    post:
-      operationId: createLinkByPageId
-      parameters:
-      - description: ID of order that needs to be fetched
-        explode: false
-        in: path
-        name: pageId
-        required: true
-        schema:
-          $ref: '#/components/schemas/Id'
-        style: simple
-      responses:
-        "401":
-          description: Access token is missing or invalid
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Link'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Link'
-          description: successful operation
-      security:
-      - bearerAuth: []
-      summary: Create new link on the user page
-      tags:
-      - creator
+      x-codegen-request-body-name: body
       x-eov-operation-handler: controllers/CreatorController
     put:
-      operationId: updateSocialLinkByPageId
+      description: Used to initialize user page with details - USE PATCH to actually
+        update the details of user page
+      operationId: createPageDetailsByPageId
       parameters:
       - description: ID of order that needs to be fetched
         explode: false
@@ -200,10 +157,7 @@ paths:
           $ref: '#/components/schemas/Id'
         style: simple
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SocialLink'
+        $ref: '#/components/requestBodies/Page'
       responses:
         "401":
           description: Access token is missing or invalid
@@ -211,32 +165,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SocialLink'
+                $ref: '#/components/schemas/Page'
           description: successful operation
       security:
       - bearerAuth: []
-      summary: Update a social link on user page
+      summary: Create user page details
       tags:
       - creator
-      x-eov-operation-handler: controllers/CreatorController
-  /creator/logout:
-    get:
-      operationId: logoutUser
-      parameters:
-      - description: ID of order that needs to be fetched
-        explode: false
-        in: path
-        name: pageId
-        required: true
-        schema:
-          $ref: '#/components/schemas/Id'
-        style: simple
-      responses:
-        "200":
-          description: successful operation
-      summary: Logout user from creator page
-      tags:
-      - creator
+      x-codegen-request-body-name: body
       x-eov-operation-handler: controllers/CreatorController
 components:
   parameters:
@@ -249,26 +185,33 @@ components:
       schema:
         $ref: '#/components/schemas/Id'
       style: simple
+  requestBodies:
+    Page:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImmutablePage'
+      required: true
+    PageId:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PageIdRequestBody'
+      required: true
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
     SuccessfulResponse:
       description: successful operation
-    LinkResponse:
+    Link:
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Link'
-        application/xml:
           schema:
             $ref: '#/components/schemas/Link'
       description: successful operation
-    PageResponse:
+    Page:
       content:
         application/json:
-          schema:
-            $ref: '#/components/schemas/Page'
-        application/xml:
           schema:
             $ref: '#/components/schemas/Page'
       description: successful operation
@@ -277,6 +220,14 @@ components:
       description: ID of page
       type: string
     Page:
+      allOf:
+      - $ref: '#/components/schemas/ImmutablePage'
+      - properties:
+          id:
+            $ref: '#/components/schemas/Id'
+        required:
+        - id
+        type: object
       example:
         img: img
         socialLinks:
@@ -289,11 +240,39 @@ components:
           link: link
         - name: name
           link: link
-        id: id
+        id: null
+      type: object
+    Link:
+      example:
+        name: name
+        link: link
       properties:
-        id:
-          description: ID of page
+        name:
+          description: alias for link
           type: string
+        link:
+          description: url of a link
+          type: string
+      required:
+      - link
+      - name
+      type: object
+    SocialLink:
+      $ref: '#/components/schemas/Link'
+    ImmutablePage:
+      example:
+        img: img
+        socialLinks:
+        - null
+        - null
+        name: name
+        bio: bio
+        links:
+        - name: name
+          link: link
+        - name: name
+          link: link
+      properties:
         name:
           description: username user page
           type: string
@@ -313,27 +292,17 @@ components:
           items:
             $ref: '#/components/schemas/Link'
           type: array
+      type: object
+    PageIdRequestBody:
+      example:
+        id: id
+      properties:
+        id:
+          description: ID of page
+          type: string
       required:
       - id
-      - name
       type: object
-    Link:
-      example:
-        name: name
-        link: link
-      properties:
-        name:
-          description: alias for link
-          type: string
-        link:
-          description: url of a link
-          type: string
-      required:
-      - link
-      - name
-      type: object
-    SocialLink:
-      $ref: '#/components/schemas/Link'
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

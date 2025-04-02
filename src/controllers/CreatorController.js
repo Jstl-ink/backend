@@ -8,12 +8,12 @@
 
 const Controller = require('./Controller');
 const service = require('../services/CreatorService');
-const createLinkByPageId = async (request, response) => {
-  await Controller.handleRequest(request, response, service.createLinkByPageId);
-};
-
 const createPage = async (request, response) => {
   await Controller.handleRequest(request, response, service.createPage);
+};
+
+const createPageDetailsByPageId = async (request, response) => {
+  await Controller.handleRequest(request, response, service.createPageDetailsByPageId);
 };
 
 const deletePageByPageId = async (request, response) => {
@@ -24,25 +24,15 @@ const getCreatorPageById = async (request, response) => {
   await Controller.handleRequest(request, response, service.getCreatorPageById);
 };
 
-const logoutUser = async (request, response) => {
-  await Controller.handleRequest(request, response, service.logoutUser);
-};
-
-const updateLinkByPageId = async (request, response) => {
-  await Controller.handleRequest(request, response, service.updateLinkByPageId);
-};
-
-const updateSocialLinkByPageId = async (request, response) => {
-  await Controller.handleRequest(request, response, service.updateSocialLinkByPageId);
+const updatePageDetailsByPageId = async (request, response) => {
+  await Controller.handleRequest(request, response, service.updatePageDetailsByPageId);
 };
 
 
 module.exports = {
-  createLinkByPageId,
   createPage,
+  createPageDetailsByPageId,
   deletePageByPageId,
   getCreatorPageById,
-  logoutUser,
-  updateLinkByPageId,
-  updateSocialLinkByPageId,
+  updatePageDetailsByPageId,
 };

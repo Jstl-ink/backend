@@ -1,98 +1,150 @@
-const googleSheetsService = require('./GoogleSheetService');
+/* eslint-disable no-unused-vars */
+const { NotFound } = require('express-openapi-validator/dist/framework/types');
 const Service = require('./Service');
+const googleSheetsService = require('./GoogleSheetService');
 
-// Add entry
-const createPage = async ({ body }) => {
-  try {
-    const {
-      id, name, bio, img, socialLinks, links,
-    } = body;
+/**
+* Create new user page
+*
+* body PageIdRequestBody
+* returns Page
+* */
+const createPage = ({ body }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      const { id } = body;
+      const newPage = await googleSheetsService.createPage(id);
 
-    const formattedSocialLinks = Array.isArray(socialLinks) ? socialLinks : [];
-    const formattedLinks = Array.isArray(links) ? links : [];
+      resolve(Service.successResponse({
+        newPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Create user page details
+* Used to initialize user page with details - USE PATCH to actually update the details of user page
+*
+* pageId String ID of order that needs to be fetched
+* body ImmutablePage
+* returns Page
+* */
+const createPageDetailsByPageId = ({ pageId, body }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      const page = await googleSheetsService.getCreatorPageById(pageId);
 
-    const newPage = await googleSheetsService.createPage({
-      id,
-      name,
-      bio,
-      img,
-      socialLinks: formattedSocialLinks,
-      links: formattedLinks,
-    });
+      if (!page) {
+        reject(Service.rejectResponse(
+          `No page found with id ${pageId}`,
+          404,
+        ));
+      }
 
-    return Service.successResponse(newPage);
-  } catch (e) {
-    return Service.rejectResponse(
-      e.message || 'Error creating page',
-      e.status || 500,
-    );
-  }
-};
+      const updatedPage = await googleSheetsService.createPage({
+        ...page,
+        ...body, // overwrite with updated page details
+      });
 
-// Delete entry by pageId
-const deletePageByPageId = async ({ pageId }) => {
-  try {
-    const deletedPage = await googleSheetsService.deletePageByPageId(pageId);
-    return Service.successResponse(deletedPage);
-  } catch (e) {
-    return Service.rejectResponse(
-      e.message || 'Error deleting page',
-      e.status || 500,
-    );
-  }
-};
+      await googleSheetsService.deletePageByPageId(pageId);
 
-// Get page by pageId
-const getCreatorPageById = async ({ pageId }) => {
-  try {
-    const page = await googleSheetsService.getCreatorPageById(pageId);
-    return Service.successResponse(page);
-  } catch (e) {
-    return Service.rejectResponse(
-      e.message || 'Error fetching page',
-      e.status || 500,
-    );
-  }
-};
+      resolve(Service.successResponse({
+        updatedPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Delete a user page
+*
+* pageId String ID of order that needs to be fetched
+* no response value expected for this operation
+* */
+const deletePageByPageId = ({ pageId }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      const deletedPage = await googleSheetsService.deletePageByPageId(pageId);
 
-// Update Link by pageId
-const updateLinkByPageId = async ({ pageId, links }) => {
-  try {
-    const page = await googleSheetsService.getCreatorPageById(pageId);
-    if (!page) throw new Error(`No page with id ${pageId} found.`);
+      resolve(Service.successResponse({
+        deletedPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Get the creator page
+*
+* pageId String ID of order that needs to be fetched
+* returns Page
+* */
+const getCreatorPageById = ({ pageId }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      const page = await googleSheetsService.getCreatorPageById(pageId);
 
-    const updatedPage = await googleSheetsService.updateLinkByPageId(pageId, links);
+      resolve(Service.successResponse({
+        page,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Update details of user page
+*
+* pageId String ID of order that needs to be fetched
+* body ImmutablePage
+* returns Link
+* */
+const updatePageDetailsByPageId = ({ pageId, body }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      const page = await googleSheetsService.getCreatorPageById(pageId);
 
-    return Service.successResponse(updatedPage);
-  } catch (e) {
-    return Service.rejectResponse(
-      e.message || 'Error updating links',
-      e.status || 500,
-    );
-  }
-};
+      if (!page) throw new NotFound({ path: `${pageId}`, message: `No page with id ${pageId} found.` });
 
-// Update social link by pageId
-const updateSocialLinkByPageId = async ({ pageId, socialLinks }) => {
-  try {
-    const page = await googleSheetsService.getCreatorPageById(pageId);
-    if (!page) throw new Error(`No page with id ${pageId} found.`);
+      const updatedPage = await googleSheetsService.createPage({
+        ...page,
+        ...body, // overwrite with updated page details
+      });
 
-    const updatedPage = await googleSheetsService.updateSocialLinkByPageId(pageId, socialLinks);
+      await googleSheetsService.deletePageByPageId(pageId);
 
-    return Service.successResponse(updatedPage);
-  } catch (e) {
-    return Service.rejectResponse(
-      e.message || 'Error updating social links',
-      e.status || 500,
-    );
-  }
-};
+      resolve(Service.successResponse({
+        updatedPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
 
 module.exports = {
   createPage,
+  createPageDetailsByPageId,
   deletePageByPageId,
   getCreatorPageById,
-  updateLinkByPageId,
-  updateSocialLinkByPageId,
+  updatePageDetailsByPageId,
 };

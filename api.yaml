@@ -31,7 +31,7 @@ paths:
         - $ref: '#/components/parameters/PageId'
       responses:
         '200':
-          $ref: '#/components/responses/PageResponse'
+          $ref: '#/components/responses/Page'
         '404':
           description: Page not found
 
@@ -41,18 +41,16 @@ paths:
         - creator
       summary: Create new user page
       operationId: createPage
+      x-codegen-request-body-name: body
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Id'
+        $ref: '#/components/requestBodies/PageId'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '409':
           description: PageId already exists
         '200':
-          $ref: '#/components/responses/PageResponse'
+          $ref: '#/components/responses/Page'
       security:
         - bearerAuth: [ ]
 
@@ -68,21 +66,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '200':
-          $ref: '#/components/responses/PageResponse'
-      security:
-        - bearerAuth: [ ]
-    post:
-      tags:
-        - creator
-      summary: Create new link on the user page
-      operationId: createLinkByPageId
-      parameters:
-        - $ref: '#/components/parameters/PageId'
-      responses:
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '200':
-          $ref: '#/components/responses/LinkResponse'
+          $ref: '#/components/responses/Page'
       security:
         - bearerAuth: [ ]
     delete:
@@ -102,57 +86,38 @@ paths:
     put:
       tags:
         - creator
-      summary: Update a social link on user page
-      operationId: updateSocialLinkByPageId
+      summary: Create user page details
+      description: Used to initialize user page with details - USE PATCH to actually update the details of user page
+      operationId: createPageDetailsByPageId
       parameters:
         - $ref: '#/components/parameters/PageId'
+      x-codegen-request-body-name: body
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SocialLink'
+        $ref: '#/components/requestBodies/Page'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SocialLink'
+          $ref: '#/components/responses/Page'
       security:
         - bearerAuth: [ ]
     patch:
       tags:
         - creator
-      summary: Update a link on user page
-      operationId: updateLinkByPageId
+      summary: Update details of user page
+      operationId: updatePageDetailsByPageId
       parameters:
         - $ref: '#/components/parameters/PageId'
+      x-codegen-request-body-name: body
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Link'
+        $ref: '#/components/requestBodies/Page'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '200':
-          $ref: '#/components/responses/LinkResponse'
+          $ref: '#/components/responses/Link'
       security:
         - bearerAuth: [ ]
-
-  /creator/logout:
-    get:
-      tags:
-        - creator
-      summary: Logout user from creator page
-      operationId: logoutUser
-      parameters:
-        - $ref: '#/components/parameters/PageId'
-      responses:
-        '200':
-          $ref: '#/components/responses/SuccessfulResponse'
 
 components:
   schemas:
@@ -162,12 +127,34 @@ components:
 
     Page:
       type: object
+      allOf:
+        - $ref: '#/components/schemas/ImmutablePage'
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+
+    Link:
+      type: object
       required:
-        - id
         - name
+        - link
       properties:
-        id:
-          $ref: '#/components/schemas/Id'
+        name:
+          description: alias for link
+          type: string
+        link:
+          description: url of a link
+          type: string
+
+    SocialLink:
+      $ref: '#/components/schemas/Link'
+
+    ImmutablePage:
+      type: object
+      properties:
         name:
           description: username user page
           type: string
@@ -188,21 +175,13 @@ components:
           items:
             $ref: '#/components/schemas/Link'
 
-    Link:
+    PageIdRequestBody:
       type: object
       required:
-        - name
-        - link
+        - id
       properties:
-        name:
-          description: alias for link
-          type: string
-        link:
-          description: url of a link
-          type: string
-
-    SocialLink:
-      $ref: '#/components/schemas/Link'
+        id:
+          $ref: '#/components/schemas/Id'
 
   #################
 
@@ -217,6 +196,23 @@ components:
 
   #################
 
+  requestBodies:
+    Page:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImmutablePage'
+
+    PageId:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PageIdRequestBody'
+
+  #################
+
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
@@ -224,14 +220,14 @@ components:
     SuccessfulResponse:
       description: successful operation
 
-    LinkResponse:
+    Link:
       description: successful operation
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Link'
 
-    PageResponse:
+    Page:
       description: successful operation
       content:
         application/json:
