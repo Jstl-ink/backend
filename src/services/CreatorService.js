@@ -1,19 +1,104 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const googleSheetsService = require('./GoogleSheetService');
 
 /**
-* Create new link on the user page
-*
-* pageId String ID of order that needs to be fetched
-* body Link
-* returns Link
-* */
-const createLinkByPageId = ({ pageId, body }) => new Promise(
-  async (resolve, reject) => {
+ * Creates a new user page
+ * @param {Object} params - Request parameters
+ * @param {Object} params.body - Page data to create
+ * @returns {Promise} Resolves with created page or rejects with error
+ */
+const createPage = ({ body }) => new Promise((resolve, reject) => {
+  const createUserPage = async () => {
+    try {
+      const newPage = await googleSheetsService.createPage(body);
+      resolve(Service.successResponse({
+        newPage,
+      }));
+    } catch (e) {
+      console.error('Error in createPage:', e);
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 500,
+      ));
+    }
+  };
+  createUserPage();
+});
+
+/**
+ * Initializes page details (deprecated - use PATCH for updates)
+ * @param {Object} params - Request parameters
+ * @param {string} params.pageId - Page ID to update
+ * @param {Object} params.body - New page data
+ * @returns {Promise} Resolves with updated page or rejects with error
+ */
+const createPageDetailsByPageId = ({ pageId, body }) => new Promise((resolve, reject) => {
+  const createDetails = async () => {
+    try {
+      const page = await googleSheetsService.getCreatorPageById(pageId);
+      if (!page) {
+        reject(Service.rejectResponse(
+          `No page found with id ${pageId}`,
+          404,
+        ));
+      }
+
+      const updatedPage = await googleSheetsService.createPage({
+        ...page,
+        ...body,
+      });
+
+      await googleSheetsService.deletePageByPageId(pageId);
+
+      resolve(Service.successResponse({
+        updatedPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  };
+  createDetails();
+});
+
+/**
+ * Deletes a user page
+ * @param {Object} params - Request parameters
+ * @param {string} params.pageId - Page ID to delete
+ * @returns {Promise} Resolves with success message or rejects with error
+ */
+const deletePageByPageId = ({ pageId }) => new Promise((resolve, reject) => {
+  const deleteUserPage = async () => {
+    try {
+      const deletedPage = await googleSheetsService.deletePageByPageId(pageId);
+      resolve(Service.successResponse({
+        deletedPage,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  };
+  deleteUserPage();
+});
+
+/**
+ * Gets a creator page by ID
+ * @param {Object} params - Request parameters
+ * @param {string} params.pageId - Page ID to fetch
+ * @returns {Promise} Resolves with page data or rejects with error
+ */
+const getCreatorPageById = ({ pageId }) => new Promise((resolve, reject) => {
+  const getPage = async () => {
     try {
       resolve(Service.successResponse({
         pageId,
-        body,
+        link,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -21,121 +106,44 @@ const createLinkByPageId = ({ pageId, body }) => new Promise(
         e.status || 405,
       ));
     }
-  },
-);
+  };
+  getPage();
+});
+
 /**
-* Create new user page
-*
-* body CreatePageRequest
-* returns Page
-* */
-const createPage = ({ body }) => new Promise(
-  async (resolve, reject) => {
+ * Updates details of the user page
+ * @param {Object} params - Request parameters
+ * @param {string} params.pageId - Page ID to update
+ * @param {Object} params.body - Updated page data
+ * @returns {Promise} Resolves with success message
+ */
+const updatePageDetailsByPageId = ({ pageId, body }) => new Promise((resolve, reject) => {
+  const updatePage = async () => {
     try {
-      const { id } = body;
-      console.log(id);
-      // TODO create table with name of id (= email)
-      resolve(Service.successResponse({
-        body,
-      }));
+      console.log('Update request received for:', pageId, 'with data:', body);
+
+      // Validate input
+      if (!pageId || !body) {
+        throw new Error('Missing pageId or update data');
+      }
+
+      const result = await googleSheetsService.updatePage(pageId, body);
+      resolve(Service.successResponse(result));
     } catch (e) {
+      console.error('Update controller error:', e);
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Update failed',
+        e.status || 500,
       ));
     }
-  },
-);
-/**
-* Delete a user page
-*
-* pageId String ID of order that needs to be fetched
-* no response value expected for this operation
-* */
-const deletePageByPageId = ({ pageId }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        pageId,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
-/**
-* Logout user from creator page
-*
-* pageId String ID of order that needs to be fetched
-* no response value expected for this operation
-* */
-const logoutUser = ({ pageId }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        pageId,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
-/**
-* Update page details of user page
-*
-* pageId String ID of order that needs to be fetched
-* body Page
-* returns Page
-* */
-const updatePageByPageId = ({ pageId, body }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        pageId,
-        body,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
-/**
-* Update a social link on user page
-*
-* pageId String ID of order that needs to be fetched
-* body Link
-* returns Link
-* */
-const updateSocialLinkByPageId = ({ pageId, body }) => new Promise(
-  async (resolve, reject) => {
-    try {
-      resolve(Service.successResponse({
-        pageId,
-        body,
-      }));
-    } catch (e) {
-      reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
-      ));
-    }
-  },
-);
+  };
+  updatePage();
+});
 
 module.exports = {
-  createLinkByPageId,
   createPage,
+  createPageDetailsByPageId,
   deletePageByPageId,
-  logoutUser,
-  updatePageByPageId,
-  updateSocialLinkByPageId,
+  getCreatorPageById,
+  updatePageDetailsByPageId,
 };
