@@ -111,32 +111,29 @@ const getCreatorPageById = ({ pageId }) => new Promise((resolve, reject) => {
 });
 
 /**
- * Updates page details
+ * Updates details of the user page
  * @param {Object} params - Request parameters
  * @param {string} params.pageId - Page ID to update
  * @param {Object} params.body - Updated page data
- * @returns {Promise} Resolves with updated page or rejects with error
+ * @returns {Promise} Resolves with success message
  */
 const updatePageDetailsByPageId = ({ pageId, body }) => new Promise((resolve, reject) => {
   const updatePage = async () => {
     try {
-      const page = await googleSheetsService.getCreatorPageById(pageId);
-      if (!page) throw new Error(`No page with id ${pageId} found.`);
+      console.log('Update request received for:', pageId, 'with data:', body);
 
-      const updatedPage = await googleSheetsService.createPage({
-        ...page,
-        ...body,
-      });
+      // Validate input
+      if (!pageId || !body) {
+        throw new Error('Missing pageId or update data');
+      }
 
-      await googleSheetsService.deletePageByPageId(pageId);
-
-      resolve(Service.successResponse({
-        updatedPage,
-      }));
+      const result = await googleSheetsService.updatePage(pageId, body);
+      resolve(Service.successResponse(result));
     } catch (e) {
+      console.error('Update controller error:', e);
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Update failed',
+        e.status || 500,
       ));
     }
   };
