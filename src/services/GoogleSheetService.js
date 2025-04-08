@@ -210,7 +210,7 @@ async function updatePage(pageId, body) {
     const data = await getAllPages();
     console.log('Current sheet data:', data);
 
-    const rowIndex = data.findIndex((row) => row[0] === pageId);
+    const rowIndex = data.findIndex((row) => row.id === pageId);
     if (rowIndex === -1) {
       throw new NotFound({ message: `Page ${pageId} not found` });
     }
