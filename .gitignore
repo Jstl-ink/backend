@@ -139,3 +139,4 @@ dist
 /google-credentials.json
 /package-lock.json
 /openapitools.json
+/src/package-lock.json
