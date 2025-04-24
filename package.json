@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node ./src/index.js",
+    "prestart": "npm install && npm install ./src",
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate": "npx @openapitools/openapi-generator-cli generate -i api.yaml -g nodejs-express-server -o src"
   },
@@ -15,6 +17,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express-oauth2-jwt-bearer": "^1.6.1",
-    "googleapis": "^148.0.0"
+    "googleapis": "^148.0.0",
+    "jstl-ink-api": "file:src"
   }
 }
