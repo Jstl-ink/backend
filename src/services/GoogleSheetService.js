@@ -1,11 +1,19 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { google } = require('googleapis');
-const path = require('path');
 const { NotFound } = require('express-openapi-validator/dist/framework/types');
+
+// Encode google credentials with this
+// const buffer = Buffer.from('');
+// const encodedKeyStr = buffer.toString('base64');
+// console.log('Base64 Encoded Key:', encodedKeyStr);
+
+const base64EncodedServiceAccount = process.env.BASE64_ENCODED_SERVICE_ACCOUNT;
+const decodedServiceAccount = Buffer.from(base64EncodedServiceAccount, 'base64').toString('utf-8');
+const credentials = JSON.parse(decodedServiceAccount);
 
 // Set up Google authentication
 const auth = new google.auth.GoogleAuth({
-  keyFile: path.join(__dirname, '../../google-credentials.json'),
+  credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
