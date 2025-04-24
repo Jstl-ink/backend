@@ -8,7 +8,6 @@
 
 const Controller = require('./Controller');
 const service = require('../services/CreatorService');
-
 const createPage = async (request, response) => {
   await Controller.handleRequest(request, response, service.createPage);
 };
@@ -28,6 +27,7 @@ const getCreatorPageById = async (request, response) => {
 const updatePageDetailsByPageId = async (request, response) => {
   await Controller.handleRequest(request, response, service.updatePageDetailsByPageId);
 };
+
 
 module.exports = {
   createPage,
