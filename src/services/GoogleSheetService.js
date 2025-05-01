@@ -2,6 +2,7 @@
 const { google } = require('googleapis');
 const path = require('path');
 const { NotFound } = require('express-openapi-validator/dist/framework/types');
+const { getRandomProfileImage } = require('./UnsplashService');
 
 // Set up Google authentication
 const auth = new google.auth.GoogleAuth({
@@ -128,7 +129,7 @@ async function createPage(body) {
     id = '',
     name = '',
     bio = '',
-    img = '',
+    img = await getRandomProfileImage(),
     socialLinks = [],
     links = [],
   } = body || {};
