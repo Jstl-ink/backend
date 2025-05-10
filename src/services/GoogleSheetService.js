@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { google } = require('googleapis');
 const { NotFound } = require('express-openapi-validator/dist/framework/types');
-const { getRandomProfileImage } = require('./UnsplashService');
 
 // Encode google credentials with this
 // const buffer = Buffer.from('');
@@ -137,7 +136,7 @@ async function createPage(body) {
     id = '',
     name = '',
     bio = '',
-    img = await getRandomProfileImage(),
+    img = '',
     socialLinks = [],
     links = [],
   } = body || {};
