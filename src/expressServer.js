@@ -38,8 +38,9 @@ class ExpressServer {
     this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(this.schema));
 
     const checkJwt = auth({
-      audience: process.env.AUTH0_AUDIENCE,
-      issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+      audience: process.env.AUTH_AUDIENCE,
+      issuerBaseURL: process.env.AUTH_ISSUER_BASE_URL,
+      tokenSigningAlg: 'RS256',
     });
 
     this.app.use(
