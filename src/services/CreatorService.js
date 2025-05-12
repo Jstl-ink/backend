@@ -3,6 +3,24 @@ const Service = require('./Service');
 const googleSheetsService = require('./GoogleSheetService');
 
 /**
+ * Gets a creator page by ID
+ * @param {Object} params - Request parameters
+ * @param {string} params.pageId - Page ID to fetch
+ * @returns {Promise} Resolves with page data or rejects with error
+ */
+const getCreatorPageById = async ({ pageId }) => {
+  try {
+    const page = await googleSheetsService.getCreatorPageById(pageId);
+    return Service.successResponse(page);
+  } catch (e) {
+    return Service.rejectResponse(
+      e.message || 'Invalid input',
+      e.status || 405,
+    );
+  }
+};
+
+/**
  * Creates a new user page
  * @param {Object} params - Request parameters
  * @param {Object} params.body - Page data to create
@@ -103,5 +121,6 @@ module.exports = {
   createPage,
   createPageDetailsByPageId,
   deletePageByPageId,
+  getCreatorPageById,
   updatePageDetailsByPageId,
 };

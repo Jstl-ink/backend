@@ -55,6 +55,22 @@ paths:
         - bearerAuth: [ ]
 
   /creator/{pageId}:
+    get:
+      tags:
+        - creator
+      summary: Get a user page
+      operationId: getCreatorPageById
+      parameters:
+        - $ref: '#/components/parameters/PageId'
+      responses:
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '200':
+          $ref: '#/components/responses/Page'
+        '404':
+          description: Page not found
+      security:
+        - bearerAuth: [ ]
     delete:
       tags:
         - creator

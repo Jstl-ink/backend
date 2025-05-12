@@ -87,6 +87,17 @@ async function getPageByHandle(handle) {
 }
 
 /**
+ * Fetches a single page by id
+ * @param {string} pageId - pageId of the page to fetch
+ * @returns {Promise<Object|null>} Page object or null if not found
+ */
+async function getCreatorPageById(pageId) {
+  const pages = await getAllPages();
+  const hashedId = getHashedId(pageId);
+  return pages.find((page) => page.id === hashedId);
+}
+
+/**
  * Appends a new page to the spreadsheet
  * @param {Object} body - Page data to insert
  * @param {string} [body.id] - Page ID
@@ -275,6 +286,7 @@ async function updatePage(pageId, body) {
 }
 
 module.exports = {
+  getCreatorPageById,
   getPageByHandle,
   createPage,
   deletePageByPageId,
