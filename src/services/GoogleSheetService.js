@@ -260,7 +260,8 @@ async function updatePage(pageId, body) {
     // 3. Prepare update data
     const currentRow = data[rowIndex];
     const updatedRow = [
-      hashedId,
+      currentRow[0],
+      currentRow[1],
       body.name || currentRow[2],
       body.bio || currentRow[3],
       body.img || currentRow[4],
