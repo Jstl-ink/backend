@@ -101,6 +101,7 @@ async function getCreatorPageById(pageId) {
  * Appends a new page to the spreadsheet
  * @param {Object} body - Page data to insert
  * @param {string} [body.id] - Page ID
+ * @param {string} [body.handle] - Page handle
  * @param {string} [body.name] - Page name
  * @param {string} [body.bio] - Page bio
  * @param {string} [body.img] - Image reference
@@ -260,11 +261,11 @@ async function updatePage(pageId, body) {
     const currentRow = data[rowIndex];
     const updatedRow = [
       hashedId,
-      body.name || currentRow[1],
-      body.bio || currentRow[2],
-      body.img || currentRow[3],
-      body.socialLinks ? JSON.stringify(body.socialLinks) : currentRow[4],
-      body.links ? JSON.stringify(body.links) : currentRow[5],
+      body.name || currentRow[2],
+      body.bio || currentRow[3],
+      body.img || currentRow[4],
+      body.socialLinks ? JSON.stringify(body.socialLinks) : currentRow[5],
+      body.links ? JSON.stringify(body.links) : currentRow[6],
     ];
 
     console.log('Update payload:', updatedRow);
