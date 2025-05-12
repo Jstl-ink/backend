@@ -7,7 +7,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.1.0
+  version: 1.0.0
 
 servers:
   - url: localhost:8080
@@ -20,15 +20,15 @@ tags:
     description: Everything about the creator page to create & edit pages
 
 paths:
-  /{pageId}:
+  /{handle}:
     get:
       tags:
         - page
-      summary: Get page by pageId
+      summary: Get page by handle
       description: Returns a single page
-      operationId: getPageById
+      operationId: getPageByHandle
       parameters:
-        - $ref: '#/components/parameters/PageId'
+        - $ref: '#/components/parameters/Handle'
       responses:
         '200':
           $ref: '#/components/responses/Page'
@@ -43,7 +43,7 @@ paths:
       operationId: createPage
       x-codegen-request-body-name: body
       requestBody:
-        $ref: '#/components/requestBodies/PageId'
+        $ref: '#/components/requestBodies/SignUp'
       responses:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
@@ -55,20 +55,6 @@ paths:
         - bearerAuth: [ ]
 
   /creator/{pageId}:
-    get:
-      tags:
-        - creator
-      summary: Get the creator page
-      operationId: getCreatorPageById
-      parameters:
-        - $ref: '#/components/parameters/PageId'
-      responses:
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '200':
-          $ref: '#/components/responses/Page'
-      security:
-        - bearerAuth: [ ]
     delete:
       tags:
         - creator
@@ -125,16 +111,23 @@ components:
       description: ID of page
       type: string
 
+    Handle:
+      description: used as pathname in the url
+      type: string
+
     Page:
       type: object
       allOf:
-        - $ref: '#/components/schemas/ImmutablePage'
+        - $ref: '#/components/schemas/MutablePage'
         - type: object
           required:
             - id
+            - handle
           properties:
             id:
               $ref: '#/components/schemas/Id'
+            handle:
+              $ref: '#/components/schemas/Handle'
 
     Link:
       type: object
@@ -152,7 +145,7 @@ components:
     SocialLink:
       $ref: '#/components/schemas/Link'
 
-    ImmutablePage:
+    MutablePage:
       type: object
       properties:
         name:
@@ -175,21 +168,32 @@ components:
           items:
             $ref: '#/components/schemas/Link'
 
-    PageIdRequestBody:
+    SignUp:
       type: object
       required:
         - id
+        - handle
       properties:
         id:
           $ref: '#/components/schemas/Id'
+        handle:
+          $ref: '#/components/schemas/Handle'
 
   #################
 
   parameters:
+    Handle:
+      name: handle
+      in: path
+      description: handle to get a page
+      required: true
+      schema:
+        $ref: '#/components/schemas/Handle'
+
     PageId:
       name: pageId
       in: path
-      description: ID of order that needs to be fetched
+      description: pageId to get a page
       required: true
       schema:
         $ref: '#/components/schemas/Id'
@@ -202,14 +206,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ImmutablePage'
+            allOf:
+              - $ref: '#/components/schemas/MutablePage'
 
-    PageId:
+    SignUp:
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PageIdRequestBody'
+            $ref: '#/components/schemas/SignUp'
 
   #################
 

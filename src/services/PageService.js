@@ -1,12 +1,12 @@
 const Service = require('./Service');
 const GoogleSheetsService = require('./GoogleSheetService');
 
-const getPageById = async ({ pageId }) => {
+const getPageByHandle = async ({ handle }) => {
   try {
-    const page = await GoogleSheetsService.getCreatorPageById(pageId);
+    const page = await GoogleSheetsService.getPageByHandle(handle);
 
     if (!page) {
-      return Service.rejectResponse(`Page with ID "${pageId}" not found.`, 404);
+      return Service.rejectResponse(`Page with handle "${handle}" not found.`, 404);
     }
 
     return Service.successResponse(page);
@@ -16,5 +16,5 @@ const getPageById = async ({ pageId }) => {
 };
 
 module.exports = {
-  getPageById,
+  getPageByHandle,
 };

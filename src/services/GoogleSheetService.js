@@ -1,6 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
+require('dotenv').config({ path: ['../../.env'] });
 const { google } = require('googleapis');
-const { NotFound } = require('express-openapi-validator/dist/framework/types');
+const { NotFound, BadRequest } = require('express-openapi-validator/dist/framework/types');
+const crypto = require('crypto');
+
+const spreadsheetId = process.env.SPREADSHEET_ID;
 
 // Encode google credentials with this
 // const buffer = Buffer.from('');
@@ -17,7 +21,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-const spreadsheetId = '1cZzTW0jtoVlOOElmxHsixPEWIPFGswGfC8z6234_Go8';
+const getHashedId = (id) => crypto.createHash('sha256').update(id).digest('hex');
 
 /**
  * Gets authenticated Google API client
@@ -56,29 +60,30 @@ async function getAllPages() {
 
   const result = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: 'person1!A2:F',
+    range: 'person1!A2:G',
   });
 
   const rows = result.data.values || [];
 
   return rows.map((row) => ({
     id: row[0] || '',
-    name: row[1] || '',
-    bio: row[2] || '',
-    img: row[3] || '',
-    socialLinks: parseJson(row[4]),
-    links: parseJson(row[5]),
+    handle: row[1],
+    name: row[2] || '',
+    bio: row[3] || '',
+    img: row[4] || '',
+    socialLinks: parseJson(row[5]),
+    links: parseJson(row[6]),
   }));
 }
 
 /**
- * Fetches a single page by ID
- * @param {string} pageId - ID of the page to fetch
+ * Fetches a single page by handle
+ * @param {string} handle - handle of the page to fetch
  * @returns {Promise<Object|null>} Page object or null if not found
  */
-async function getCreatorPageById(pageId) {
+async function getPageByHandle(handle) {
   const pages = await getAllPages();
-  return pages.find((page) => page.id === pageId);
+  return pages.find((page) => page.handle === handle);
 }
 
 /**
@@ -105,7 +110,7 @@ async function compactSheet() {
   // 1. Get all data
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: 'person1!A2:F',
+    range: 'person1!A2:G',
   });
 
   const rows = response.data.values || [];
@@ -115,14 +120,14 @@ async function compactSheet() {
   // 3. Clear entire data range
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
-    range: 'person1!A2:F',
+    range: 'person1!A2:G',
   });
 
   // 4. Write back non-empty rows
   if (nonEmptyRows.length > 0) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: 'person1!A2:F',
+      range: 'person1!A2:G',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: nonEmptyRows },
     });
@@ -134,6 +139,7 @@ async function compactSheet() {
 async function createPage(body) {
   const {
     id = '',
+    handle = '',
     name = '',
     bio = '',
     img = '',
@@ -141,8 +147,18 @@ async function createPage(body) {
     links = [],
   } = body || {};
 
+  if (await getPageByHandle(handle)) {
+    throw new BadRequest({
+      path: `${handle}`,
+      message: `Page with handle ${handle} already exists.`,
+      overrideStatus: 409,
+    });
+  }
+
+  const hashedId = getHashedId(id);
   const row = [
-    id,
+    hashedId,
+    handle,
     name,
     bio,
     img,
@@ -156,7 +172,7 @@ async function createPage(body) {
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'person1!A2:F',
+      range: 'person1!A2:G',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
@@ -182,7 +198,8 @@ async function deletePageByPageId(pageId) {
   const sheets = google.sheets({ version: 'v4', auth: client });
 
   const pages = await getAllPages();
-  const rowIndex = pages.findIndex((page) => page.id === pageId);
+  const hashedId = getHashedId(pageId);
+  const rowIndex = pages.findIndex((page) => page.id === hashedId);
 
   if (rowIndex === -1) {
     throw new NotFound({
@@ -191,7 +208,7 @@ async function deletePageByPageId(pageId) {
     });
   }
 
-  const range = `person1!A${rowIndex + 2}:F${rowIndex + 2}`;
+  const range = `person1!A${rowIndex + 2}:G${rowIndex + 2}`;
 
   await sheets.spreadsheets.values.clear({
     spreadsheetId,
@@ -218,19 +235,20 @@ async function updatePage(pageId, body) {
     const data = await getAllPages();
     console.log('Current sheet data:', data);
 
-    const rowIndex = data.findIndex((row) => row.id === pageId);
+    const hashedId = getHashedId(pageId);
+    const rowIndex = data.findIndex((row) => row.id === hashedId);
     if (rowIndex === -1) {
       throw new NotFound({ message: `Page ${pageId} not found` });
     }
 
-    // 2. Calculate exact range (A2:F2 for first data row)
-    const range = `person1!A${rowIndex + 2}:F${rowIndex + 2}`;
+    // 2. Calculate exact range (A2:G2 for first data row)
+    const range = `person1!A${rowIndex + 2}:G${rowIndex + 2}`;
     console.log('Calculated update range:', range);
 
     // 3. Prepare update data
     const currentRow = data[rowIndex];
     const updatedRow = [
-      pageId,
+      hashedId,
       body.name || currentRow[1],
       body.bio || currentRow[2],
       body.img || currentRow[3],
@@ -257,7 +275,7 @@ async function updatePage(pageId, body) {
 }
 
 module.exports = {
-  getCreatorPageById,
+  getPageByHandle,
   createPage,
   deletePageByPageId,
   updatePage,
