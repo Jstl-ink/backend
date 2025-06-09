@@ -97,19 +97,6 @@ async function getCreatorPageById(pageId) {
   return pages.find((page) => page.id === hashedId);
 }
 
-/**
- * Appends a new page to the spreadsheet
- * @param {Object} body - Page data to insert
- * @param {string} [body.id] - Page ID
- * @param {string} [body.handle] - Page handle
- * @param {string} [body.name] - Page name
- * @param {string} [body.bio] - Page bio
- * @param {string} [body.img] - Image reference
- * @param {Array} [body.socialLinks] - Social links array
- * @param {Array} [body.links] - Additional links array
- * @returns {Promise<Object>} Success message and updated range
- * @throws {Error} If creation fails
- */
 
 /**
  * Compacts the sheet by removing empty rows and shifting data up
@@ -148,6 +135,20 @@ async function compactSheet() {
   return { message: 'Sheet compacted successfully' };
 }
 
+
+/**
+ * Appends a new page to the spreadsheet
+ * @param {Object} body - Page data to insert
+ * @param {string} [body.id] - Page ID
+ * @param {string} [body.handle] - Page handle
+ * @param {string} [body.name] - Page name
+ * @param {string} [body.bio] - Page bio
+ * @param {string} [body.img] - Image reference
+ * @param {Array} [body.socialLinks] - Social links array
+ * @param {Array} [body.links] - Additional links array
+ * @returns {Promise<Object>} Success message and updated range
+ * @throws {Error} If creation fails
+ */
 async function createPage(body) {
   const {
     id = '',
