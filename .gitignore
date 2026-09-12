@@ -22,7 +22,6 @@ node_modules/
 /.idea/
 
 /google-credentials.json
-/package-lock.json
 /openapitools.json
 /src/
 !/src/.openapi-generator-ignore
