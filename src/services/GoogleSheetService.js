@@ -97,19 +97,6 @@ async function getCreatorPageById(pageId) {
   return pages.find((page) => page.id === hashedId);
 }
 
-/**
- * Appends a new page to the spreadsheet
- * @param {Object} body - Page data to insert
- * @param {string} [body.id] - Page ID
- * @param {string} [body.handle] - Page handle
- * @param {string} [body.name] - Page name
- * @param {string} [body.bio] - Page bio
- * @param {string} [body.img] - Image reference
- * @param {Array} [body.socialLinks] - Social links array
- * @param {Array} [body.links] - Additional links array
- * @returns {Promise<Object>} Success message and updated range
- * @throws {Error} If creation fails
- */
 
 /**
  * Compacts the sheet by removing empty rows and shifting data up
@@ -148,6 +135,20 @@ async function compactSheet() {
   return { message: 'Sheet compacted successfully' };
 }
 
+
+/**
+ * Appends a new page to the spreadsheet
+ * @param {Object} body - Page data to insert
+ * @param {string} [body.id] - Page ID
+ * @param {string} [body.handle] - Page handle
+ * @param {string} [body.name] - Page name
+ * @param {string} [body.bio] - Page bio
+ * @param {string} [body.img] - Image reference
+ * @param {Array} [body.socialLinks] - Social links array
+ * @param {Array} [body.links] - Additional links array
+ * @returns {Promise<Object>} Success message and updated range
+ * @throws {Error} If creation fails
+ */
 async function createPage(body) {
   const {
     id = '',
@@ -211,7 +212,7 @@ async function deletePageByPageId(pageId) {
 
   const pages = await getAllPages();
   const hashedId = getHashedId(pageId);
-  const rowIndex = pages.findIndex((page) => page.id === hashedId);
+  const { rowIndex, currentRow } = await findRowByPageId(pageId);
 
   if (rowIndex === -1) {
     throw new NotFound({
@@ -240,51 +241,72 @@ async function updatePage(pageId, body) {
   const client = await getAuthClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
 
-  console.log('Starting update for pageId:', pageId);
+  const hashedId = getHashedId(pageId);
 
-  try {
-    // 1. Get all data to find the correct row
-    const data = await getAllPages();
-    console.log('Current sheet data:', data);
+  // find row and get existing data
+  const { rowIndex, currentRow } = await findRowByPageId(pageId);
 
-    const hashedId = getHashedId(pageId);
-    const rowIndex = data.findIndex((row) => row.id === hashedId);
-    if (rowIndex === -1) {
-      throw new NotFound({ message: `Page ${pageId} not found` });
-    }
-
-    // 2. Calculate exact range (A2:G2 for first data row)
-    const range = `person1!A${rowIndex + 2}:G${rowIndex + 2}`;
-    console.log('Calculated update range:', range);
-
-    // 3. Prepare update data
-    const currentRow = data[rowIndex];
-    const updatedRow = [
-      currentRow[0],
-      currentRow[1],
-      body.name || currentRow[2],
-      body.bio || currentRow[3],
-      body.img || currentRow[4],
-      body.socialLinks ? JSON.stringify(body.socialLinks) : currentRow[5],
-      body.links ? JSON.stringify(body.links) : currentRow[6],
-    ];
-
-    console.log('Update payload:', updatedRow);
-
-    const response = await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [updatedRow] },
-    });
-
-    await compactSheet();
-    console.log('Update successful:', response.data);
-    return { message: 'Page updated successfully' };
-  } catch (error) {
-    console.error('Update failed:', error);
-    throw error;
+  if (rowIndex === -1) {
+    throw new NotFound({ message: `Page ${pageId} not found` });
   }
+
+  // prepare updated data, safely handling arrays and empty values
+  const updatedRow = [
+    currentRow.id,
+    currentRow.handle,
+    body.name ?? currentRow.name ?? '',
+    body.bio ?? currentRow.bio ?? '',
+    body.img ?? currentRow.img ?? '',
+    JSON.stringify(body.socialLinks ?? currentRow.socialLinks ?? []),
+    JSON.stringify(body.links ?? currentRow.links ?? []),
+  ];
+
+  // execute update
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `person1!A${rowIndex + 2}:G${rowIndex + 2}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [updatedRow] },
+  });
+
+  return { message: 'Page updated successfully' };
+}
+
+
+async function findRowByPageId(pageId) {
+  const client = await getAuthClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+
+  const hashedId = getHashedId(pageId);
+
+  // Annahme: IDs sind in Spalte A (Anpassen falls nötig)
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: 'person1!A2:A', // Nur IDs laden (schneller)
+  });
+
+  const rows = response.data.values || [];
+  const rowIndex = rows.findIndex((row) => row[0] === hashedId);
+
+  if (rowIndex === -1) return { rowIndex: -1 };
+
+  // Lade nur die eine Zeile (nicht alle Daten)
+  const rowData = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `person1!A${rowIndex + 2}:G${rowIndex + 2}`,
+  });
+
+  const currentRow = {
+    id: rowData.data.values[0][0],
+    handle: rowData.data.values[0][1],
+    name: rowData.data.values[0][2],
+    bio: rowData.data.values[0][3],
+    img: rowData.data.values[0][4],
+    socialLinks: parseJson(rowData.data.values[0][5]),
+    links: parseJson(rowData.data.values[0][6]),
+  };
+
+  return { rowIndex, currentRow };
 }
 
 module.exports = {
